@@ -1,0 +1,16 @@
+{
+  "name": "aqua-tracker",
+  "version": "1.0.0",
+  "description": "Личный трекер привычек: вода, калории, задачи, календарь, привычки",
+  "main": "main.js",
+  "scripts": {
+    "start": "node server.js",
+    "electron": "electron .",
+    "electron:dev": "electron . --dev"
+  },
+  "author": "shweppyk",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "version": "1.0.0",
+  "files": ["index.html", "app.js", "styles.css", "theme-init.js", "sw.js", "manifest.json"]
+}

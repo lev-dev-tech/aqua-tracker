@@ -1,0 +1,8 @@
+node_modules/
+graphify-out/
+.appdata/
+.edge-profile/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

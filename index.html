@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://world.openfoodfacts.org https://images.openfoodfacts.org https://api.anthropic.com;" />
+  <title>Aqua — трекер привычек</title>
+  <meta name="theme-color" content="#0e0f1c" />
+  <!-- Apply the saved theme BEFORE first paint so the splash + first frame never
+       flash the default dark theme on restart. External (not inline) for CSP. -->
+  <script src="theme-init.js"></script>
+  <link rel="icon" type="image/png" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Splash: water drop falls, splashes, then reveals the app -->
+  <div class="splash" id="splash">
+    <div class="splash-stage">
+      <svg class="drop" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 0S2 11 2 19a10 10 0 0 0 20 0C22 11 12 0 12 0z"/></svg>
+      <div class="splash-impact">
+        <span class="ripple"></span><span class="ripple r2"></span><span class="ripple r3"></span>
+        <span class="puddle"></span>
+      </div>
+      <div class="splash-word">Aqua</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2s7 7.6 7 12a7 7 0 1 1-14 0c0-4.4 7-12 7-12z"/></svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Aqua</span>
+          <span class="brand-sub">трекер привычек</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="dashboard"><span class="ic">🏠</span><span>Обзор</span></button>
+        <button class="nav-item" data-view="water"><span class="ic">💧</span><span>Вода</span></button>
+        <button class="nav-item" data-view="nutrition"><span class="ic">🍎</span><span>Калории</span></button>
+        <button class="nav-item" data-view="tasks"><span class="ic">✅</span><span>Задачи</span><span class="badge" id="navTasksBadge"></span></button>
+        <button class="nav-item" data-view="habits"><span class="ic">🔥</span><span>Привычки</span></button>
+        <button class="nav-item" data-view="focus"><span class="ic">⏱️</span><span>Фокус</span></button>
+        <button class="nav-item" data-view="finance"><span class="ic">💰</span><span>Финансы</span></button>
+        <button class="nav-item" data-view="calendar"><span class="ic">📅</span><span>Календарь</span></button>
+      </nav>
+
+      <div class="nav-bottom">
+        <button class="nav-item" data-view="profile"><span class="ic">⚙️</span><span>Профиль</span></button>
+        <button class="theme-toggle" id="themeToggle" title="Сменить тему">
+          <span class="ic">🌙</span><span>Тема</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===================== MAIN ===================== -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="viewTitle">Обзор</h1>
+          <div class="date-nav">
+            <button class="date-arrow" id="dayPrev" title="Предыдущий день">‹</button>
+            <button class="topbar-date" id="topbarDate" title="К сегодняшнему дню"></button>
+            <button class="date-arrow" id="dayNext" title="Следующий день">›</button>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="mini-ring" id="miniWaterRing" title="Вода за сегодня"></div>
+          <div class="avatar" id="topAvatar">🙂</div>
+        </div>
+      </header>
+
+      <div class="scroll">
+        <!-- ---------- DASHBOARD ---------- -->
+        <section class="view active" data-view="dashboard">
+          <div class="grid dash-grid">
+            <div class="card water-hero" id="dashWaterCard">
+              <div class="card-head"><h3>Вода</h3><span class="muted" id="dashWaterGoal"></span></div>
+              <div class="bottle-wrap small">
+                <div class="bottle" id="dashBottle">
+                  <div class="bottle-water" id="dashBottleWater"><div class="wave"></div><div class="wave wave2"></div></div>
+                  <div class="bottle-label"><span id="dashWaterMl">0</span><small>мл</small></div>
+                </div>
+              </div>
+              <div class="quick-add" id="dashQuickAdd"></div>
+            </div>
+
+            <div class="card stat-card">
+              <div class="card-head"><h3>Калории</h3><span class="muted" id="dashKcalGoal"></span></div>
+              <div class="ring-wrap"><canvas id="dashKcalRing" width="150" height="150"></canvas>
+                <div class="ring-center"><b id="dashKcalNow">0</b><small>ккал</small></div>
+              </div>
+              <div class="macro-row" id="dashMacros"></div>
+            </div>
+
+            <div class="card tasks-mini">
+              <div class="card-head"><h3>Задачи</h3><button class="link-btn" data-goto="tasks">все →</button></div>
+              <ul class="mini-tasks" id="dashTasks"></ul>
+            </div>
+
+            <div class="card habits-dash">
+              <div class="card-head"><h3>Привычки</h3><button class="link-btn" data-goto="habits">управлять →</button></div>
+              <div class="dash-habits" id="dashHabits"></div>
+            </div>
+
+            <div class="card streaks-card">
+              <div class="card-head"><h3>Серия дней с водой</h3></div>
+              <div class="streak-big"><span id="waterStreak">0</span><small>дней подряд 🔥</small></div>
+              <div class="streak-goal" id="streakGoal"></div>
+              <div class="weekbar" id="weekBar"></div>
+            </div>
+
+            <div class="card weight-card">
+              <div class="card-head"><h3>Вес и цель</h3><button class="link-btn" id="logWeightBtn">+ записать вес</button></div>
+              <div id="weightBody"></div>
+            </div>
+
+            <div class="card finance-dash-card">
+              <div class="card-head"><h3>Финансы</h3><button class="link-btn" data-goto="finance">открыть →</button></div>
+              <div id="financeDash"></div>
+            </div>
+
+            <div class="card prod-week">
+              <div class="card-head"><h3>Продуктивность за неделю</h3><button class="link-btn" data-goto="focus">фокус →</button></div>
+              <div class="stat-strip" id="weekStats"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------- WATER ---------- -->
+        <section class="view" data-view="water">
+          <div class="grid water-grid">
+            <div class="card bottle-card">
+              <div class="bottle-wrap big">
+                <div class="bottle" id="mainBottle">
+                  <div class="bottle-water" id="mainBottleWater"><div class="wave"></div><div class="wave wave2"></div></div>
+                  <div class="bottle-ticks"></div>
+                  <div class="bottle-label"><span id="mainWaterMl">0</span><small>/ <span id="mainWaterGoal">2000</span> мл</small></div>
+                </div>
+              </div>
+              <p class="water-percent" id="waterPercent">0%</p>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h3>Добавить воду</h3></div>
+              <div class="quick-add big" id="waterQuickAdd"></div>
+              <div class="custom-add">
+                <input type="number" id="customWaterInput" placeholder="Своё кол-во, мл" min="1" />
+                <button class="btn primary" id="customWaterBtn">Добавить</button>
+              </div>
+              <button class="btn ghost danger" id="undoWaterBtn">↶ Убрать последний</button>
+
+              <div class="card-head mt"><h3>Напоминания</h3></div>
+              <label class="switch-row">
+                <span>Напоминать пить воду</span>
+                <input type="checkbox" id="reminderEnabled" class="switch" />
+              </label>
+              <label class="range-row">
+                <span>Каждые <b id="reminderIntervalLabel">90</b> мин</span>
+                <input type="range" id="reminderInterval" min="15" max="240" step="15" value="90" />
+              </label>
+              <div class="quiet-row">
+                <span>Тишина с</span>
+                <input type="number" id="quietFrom" min="0" max="23" value="23" /> до
+                <input type="number" id="quietTo" min="0" max="23" value="8" /> ч
+              </div>
+              <button class="btn ghost" id="testNotifyBtn">🔔 Проверить уведомление</button>
+            </div>
+
+            <div class="card wide">
+              <div class="card-head"><h3>Приёмы воды сегодня</h3><span class="muted" id="waterLogCount"></span></div>
+              <div class="water-log" id="waterLog"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------- NUTRITION ---------- -->
+        <section class="view" data-view="nutrition">
+          <div class="grid nutri-grid">
+            <div class="card kcal-summary">
+              <div class="ring-wrap big"><canvas id="kcalRing" width="200" height="200"></canvas>
+                <div class="ring-center"><b id="kcalNow">0</b><small>из <span id="kcalGoal">0</span> ккал</small><span class="kcal-left" id="kcalLeft"></span></div>
+              </div>
+              <div class="macro-bars" id="macroBars"></div>
+            </div>
+
+            <div class="card add-food-card" id="addFoodCard">
+              <div class="meal-select-row">
+                <span>Приём пищи</span>
+                <select id="foodMeal">
+                  <option value="breakfast">🌅 Завтрак</option>
+                  <option value="lunch">🍽️ Обед</option>
+                  <option value="dinner">🌙 Ужин</option>
+                  <option value="snack">🍎 Перекус</option>
+                </select>
+              </div>
+              <div class="tabs" id="foodTabs">
+                <button class="tab active" data-ftab="search">🔎 Поиск</button>
+                <button class="tab" data-ftab="barcode">🏷️ Штрихкод</button>
+                <button class="tab" data-ftab="manual">✏️ Вручную</button>
+                <button class="tab" data-ftab="photo">📷 Фото (AI)</button>
+              </div>
+
+              <div class="ftab active" data-ftab="search">
+                <div class="search-row">
+                  <input type="text" id="foodSearchInput" placeholder="Напр. «банан», «творог 5%»..." />
+                  <button class="btn primary" id="foodSearchBtn">Найти</button>
+                </div>
+                <div class="food-results" id="foodResults"><p class="hint">База Open Food Facts — бесплатно, без ключей. Введи продукт и нажми «Найти».</p></div>
+              </div>
+
+              <div class="ftab" data-ftab="barcode">
+                <div class="search-row">
+                  <input type="text" id="barcodeInput" placeholder="Штрихкод с упаковки, напр. 4600000000000" />
+                  <button class="btn primary" id="barcodeBtn">Найти</button>
+                </div>
+                <div class="food-results" id="barcodeResults"><p class="hint">Вбей цифры под штрихкодом продукта.</p></div>
+              </div>
+
+              <div class="ftab" data-ftab="manual">
+                <div class="manual-grid">
+                  <input type="text" id="mName" placeholder="Название" />
+                  <input type="number" id="mKcal" placeholder="Ккал" />
+                  <input type="number" id="mProt" placeholder="Белки, г" />
+                  <input type="number" id="mFat" placeholder="Жиры, г" />
+                  <input type="number" id="mCarb" placeholder="Углеводы, г" />
+                  <div class="manual-portion">
+                    <input type="number" id="mGrams" placeholder="Порция" value="100" />
+                    <select id="mUnit" title="единица"></select>
+                  </div>
+                </div>
+                <button class="btn primary full" id="manualAddBtn">Добавить в дневник</button>
+              </div>
+
+              <div class="ftab" data-ftab="photo">
+                <div class="photo-drop" id="photoDrop">
+                  <input type="file" id="photoInput" accept="image/*" hidden />
+                  <img id="photoPreview" alt="" hidden />
+                  <div class="photo-placeholder" id="photoPlaceholder">
+                    <div class="big-emoji">📷</div>
+                    <p>Перетащи фото еды сюда или нажми, чтобы выбрать</p>
+                  </div>
+                </div>
+                <button class="btn primary full" id="analyzePhotoBtn" disabled>Оценить калории по фото</button>
+                <details class="ai-setup">
+                  <summary>Как это работает / настроить ключ</summary>
+                  <p>Определение калорий по фото требует зрительной модели. Работает опционально на твоём ключе Anthropic (Claude) — вставь его ниже, он хранится только на этом ПК. Без ключа пользуйся поиском/штрихкодом — это бесплатно.</p>
+                  <input type="password" id="aiKey" placeholder="sk-ant-... (необязательно)" />
+                  <button class="btn ghost" id="saveKeyBtn">Сохранить ключ</button>
+                </details>
+                <div class="food-results" id="photoResults"></div>
+              </div>
+            </div>
+
+            <div class="card wide meals-card">
+              <div class="card-head"><h3>Приёмы пищи</h3><span class="muted">норма делится по приёмам автоматически</span></div>
+              <div class="meals-wrap" id="mealsWrap"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------- TASKS ---------- -->
+        <section class="view" data-view="tasks">
+          <div class="card tasks-card wide">
+            <div class="task-input">
+              <input type="text" id="taskInput" placeholder="Новая задача... (Enter — добавить)" />
+              <input type="text" id="taskCat" list="catList" placeholder="Категория (своя или шаблон)" />
+              <datalist id="catList">
+                <option value="Работа"></option><option value="Личное"></option><option value="Дом"></option>
+                <option value="Учёба"></option><option value="Здоровье"></option><option value="Покупки"></option>
+                <option value="Проект"></option><option value="Идеи"></option>
+              </datalist>
+              <select id="taskPriority" title="Приоритет">
+                <option value="low">Низкий</option>
+                <option value="mid" selected>Средний</option>
+                <option value="high">Высокий</option>
+              </select>
+              <input type="date" id="taskDue" title="Срок" />
+              <button class="btn primary" id="taskAddBtn">Добавить</button>
+            </div>
+            <div class="task-folders" id="taskFolders"></div>
+            <div class="task-filters">
+              <button class="chip active" data-filter="all">Все</button>
+              <button class="chip" data-filter="active">Активные</button>
+              <button class="chip" data-filter="done">Готовые</button>
+              <button class="chip" data-filter="today">На сегодня</button>
+              <span class="spacer"></span>
+              <button class="link-btn" id="clearDoneBtn">Очистить готовые</button>
+            </div>
+            <div class="task-list" id="taskList"></div>
+          </div>
+        </section>
+
+        <!-- ---------- HABITS ---------- -->
+        <section class="view" data-view="habits">
+          <div class="card wide">
+            <div class="card-head">
+              <h3>Мои привычки</h3>
+              <button class="btn primary sm" id="addHabitBtn">+ Привычка</button>
+            </div>
+            <div class="habits-list" id="habitsList"></div>
+          </div>
+        </section>
+
+        <!-- ---------- FOCUS ---------- -->
+        <section class="view" data-view="focus">
+          <div class="grid focus-grid">
+            <div class="card pomodoro-card">
+              <div class="card-head"><h3 id="pomoMode">Фокус · Помодоро</h3><span class="muted" id="pomoRound"></span></div>
+              <div class="pomo-ring-wrap">
+                <canvas id="pomoRing" width="260" height="260"></canvas>
+                <div class="pomo-center"><b id="pomoTime">25:00</b><small id="pomoLabel">работа</small></div>
+              </div>
+              <div class="pomo-controls">
+                <button class="btn primary" id="pomoStart">▶ Старт</button>
+                <button class="btn ghost" id="pomoReset">↺ Сброс</button>
+                <button class="btn ghost" id="pomoSkip">⏭ Пропустить</button>
+              </div>
+              <div class="pomo-settings">
+                <label>Работа <input type="number" id="pomoWork" min="5" max="90" value="25"> мин</label>
+                <label>Перерыв <input type="number" id="pomoBreak" min="1" max="30" value="5"> мин</label>
+              </div>
+            </div>
+
+            <div class="card focus-side">
+              <div class="card-head"><h3>Сегодня в фокусе</h3></div>
+              <div class="focus-today" id="focusToday"></div>
+              <div class="card-head mt"><h3>Заметки</h3><span class="muted">автосохранение</span></div>
+              <textarea id="notesArea" class="notes-area" placeholder="Мысли, идеи, список покупок, что угодно…"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------- FINANCE ---------- -->
+        <section class="view" data-view="finance">
+          <div id="financeRoot"></div>
+        </section>
+
+        <!-- ---------- CALENDAR ---------- -->
+        <section class="view" data-view="calendar">
+          <div class="card wide">
+            <div class="cal-head">
+              <button class="btn ghost sm" id="calPrev">‹</button>
+              <h3 id="calTitle"></h3>
+              <button class="btn ghost sm" id="calNext">›</button>
+            </div>
+            <div class="cal-legend">
+              <span><i class="dot water"></i> вода</span>
+              <span><i class="dot kcal"></i> калории</span>
+              <span><i class="dot task"></i> задачи</span>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+          <div class="card wide" id="dayDetailCard" hidden>
+            <div class="card-head"><h3 id="dayDetailTitle"></h3><button class="link-btn" id="closeDayDetail">закрыть</button></div>
+            <div id="dayDetailBody"></div>
+          </div>
+        </section>
+
+        <!-- ---------- PROFILE ---------- -->
+        <section class="view" data-view="profile">
+          <div class="grid profile-grid">
+            <div class="card">
+              <div class="card-head"><h3>Обо мне</h3></div>
+              <div class="form-grid">
+                <label>Имя<input type="text" id="pName" placeholder="Как тебя зовут" /></label>
+                <label>Пол
+                  <select id="pSex"><option value="male">Мужской</option><option value="female">Женский</option></select>
+                </label>
+                <label>Возраст<input type="number" id="pAge" min="10" max="100" placeholder="лет" /></label>
+                <label>Рост<input type="number" id="pHeight" min="120" max="230" placeholder="см" /></label>
+                <label>Вес<input type="number" id="pWeight" min="30" max="250" placeholder="кг" /></label>
+                <label>Активность
+                  <select id="pActivity">
+                    <option value="1.2">Сидячий (офис, мало ходьбы)</option>
+                    <option value="1.375" selected>Лёгкая (1–3 трен/нед)</option>
+                    <option value="1.55">Умеренная (3–5 трен/нед)</option>
+                    <option value="1.725">Высокая (6–7 трен/нед)</option>
+                    <option value="1.9">Очень высокая (2× в день / физ. работа)</option>
+                  </select>
+                </label>
+                <label>Цель
+                  <select id="pGoal">
+                    <option value="lose">🔥 Похудение</option>
+                    <option value="maintain" selected>⚖️ Поддержание</option>
+                    <option value="gain">📈 Набор массы</option>
+                    <option value="muscle">💪 Набор мышц</option>
+                  </select>
+                </label>
+                <label id="pRateWrap" hidden>Темп
+                  <select id="pGoalRate">
+                    <option value="0.25">0.25 кг/нед — мягко</option>
+                    <option value="0.5" selected>0.5 кг/нед — обычно</option>
+                    <option value="0.75">0.75 кг/нед — быстро</option>
+                    <option value="1">1.0 кг/нед — агрессивно</option>
+                  </select>
+                </label>
+                <label id="pTargetWrap" hidden>Целевой вес<input type="number" id="pTargetWeight" min="30" max="250" placeholder="кг" /></label>
+                <label>Аватар
+                  <button type="button" class="avatar-pick" id="pAvatarBtn">
+                    <span id="pAvatarPreview">🙂</span><span class="avatar-pick-hint">Сменить</span>
+                  </button>
+                </label>
+              </div>
+              <div class="profile-actions">
+                <button class="btn primary" id="saveProfileBtn">Сохранить</button>
+                <button class="btn ghost" id="quizBtn">🎯 Настроить цель (квиз)</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h3>Рассчитано для тебя</h3></div>
+              <div class="calc-list" id="calcList"></div>
+              <p class="hint">Формула Миффлина-Сан Жеора для калорий, ~35 мл/кг для воды. Можешь переопределить цели вручную ниже.</p>
+              <div class="form-grid two">
+                <label>Своя цель по воде<input type="number" id="pWaterGoal" placeholder="мл" /></label>
+                <label>Своя цель по калориям<input type="number" id="pKcalGoal" placeholder="ккал" /></label>
+              </div>
+              <button class="btn ghost full" id="saveGoalsBtn">Применить свои цели</button>
+            </div>
+
+            <div class="card wide">
+              <div class="card-head"><h3>Данные</h3></div>
+              <div class="data-row">
+                <button class="btn ghost" id="exportBtn">⬇ Экспорт (JSON)</button>
+                <button class="btn ghost" id="importBtn">⬆ Импорт</button>
+                <input type="file" id="importFile" accept="application/json" hidden />
+                <button class="btn ghost danger" id="resetBtn">🗑 Сбросить всё</button>
+              </div>
+              <p class="hint">Все данные хранятся локально на этом компьютере. Никуда не отправляются.</p>
+              <div class="update-row" id="updateRow" hidden>
+                <span class="hint" style="margin:0">Версия <b id="appVer">—</b></span>
+                <button class="btn ghost sm" id="checkUpdateBtn">🔄 Проверить обновления</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
