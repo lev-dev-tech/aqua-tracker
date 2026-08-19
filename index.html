@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://world.openfoodfacts.org https://images.openfoodfacts.org https://api.anthropic.com;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://world.openfoodfacts.org https://images.openfoodfacts.org https://api.anthropic.com https://*.googleapis.com https://*.firebaseio.com https://aqua-tracker-8f261.firebaseapp.com; frame-src https://aqua-tracker-8f261.firebaseapp.com;" />
   <title>Aqua — трекер привычек</title>
   <meta name="theme-color" content="#0e0f1c" />
   <!-- Apply the saved theme BEFORE first paint so the splash + first frame never
@@ -79,6 +79,7 @@
           </div>
         </div>
         <div class="topbar-right">
+          <span class="sync-badge" id="syncBadge" hidden></span>
           <div class="mini-ring" id="miniWaterRing" title="Вода за сегодня"></div>
           <div class="avatar" id="topAvatar">🙂</div>
         </div>
@@ -373,6 +374,7 @@
 
         <!-- ---------- PROFILE ---------- -->
         <section class="view" data-view="profile">
+          <div id="accountCard"></div>
           <div class="grid profile-grid">
             <div class="card">
               <div class="card-head"><h3>Обо мне</h3></div>
@@ -484,6 +486,11 @@
   <!-- toast -->
   <div class="toast" id="toast"></div>
 
+  <!-- Firebase SDK (self-hosted for CSP + offline shell) + init, before app.js -->
+  <script src="vendor/firebase-app-compat.js"></script>
+  <script src="vendor/firebase-auth-compat.js"></script>
+  <script src="vendor/firebase-firestore-compat.js"></script>
+  <script src="firebase-init.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

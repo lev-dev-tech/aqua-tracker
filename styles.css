@@ -1003,6 +1003,22 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .update-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--stroke); }
 .update-row b { color: var(--text); font-weight: 700; }
 
+/* ===================== ACCOUNT / SYNC ===================== */
+.acc-card { margin-bottom: 18px; }
+.acc-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.acc-avatar { width: 52px; height: 52px; border-radius: 15px; background: var(--grad); color: #fff; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 22px; flex-shrink: 0; }
+.acc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.acc-info b { font-size: 16px; }
+.acc-info span { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acc-sync { font-size: 12.5px; color: var(--text-dim); background: var(--panel-hi); border-radius: 10px; padding: 9px 12px; margin-bottom: 12px; }
+.acc-tabs { display: flex; gap: 4px; margin-bottom: 12px; background: var(--panel-hi); padding: 4px; border-radius: 12px; }
+.acc-tab { flex: 1; border: 0; background: transparent; color: var(--text-dim); padding: 9px; border-radius: 9px; font-family: var(--font); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: .18s; }
+.acc-tab.active { background: var(--grad); color: #fff; }
+.acc-form { display: flex; flex-direction: column; gap: 10px; }
+.acc-err { color: var(--danger); font-size: 12.5px; }
+.acc-err:empty { display: none; }
+.sync-badge { font-size: 15px; cursor: default; }
+
 /* ===================== DATE OF BIRTH + BIRTHDAY ===================== */
 .dob-row { display: flex; gap: 8px; }
 .dob-row input { text-align: center; padding: 11px 6px; }

@@ -119,6 +119,7 @@ function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { console.warn(e); }
+    if (!cloudApplying) { markUpdated(); syncPush(); } // mirror to the cloud when signed in
   }, 120);
 }
 
@@ -1508,6 +1509,7 @@ function loadProfileForm() {
     const ur = $('#updateRow'); if (ur) ur.hidden = false;
     const av = $('#appVer'); if (av) av.textContent = window.desktop.appVersion || '1.0.0';
   }
+  renderAccountCard();
   renderCalc();
 }
 // Show target-weight + rate only for weight-change goals.
@@ -2826,6 +2828,148 @@ function loadPhoto(file) {
 /* ============================================================
    INIT
    ============================================================ */
+/* ============================================================
+   ACCOUNTS + CLOUD SYNC (Firebase Auth + Firestore)
+   Local-first: the app works fully offline; signing in mirrors
+   the whole state to the cloud and syncs it across devices
+   (last-write-wins by an updatedAt timestamp).
+   ============================================================ */
+const FB = (typeof window !== 'undefined' && window.FB) || null;
+let account = null;         // { uid, email, nickname }
+let syncUnsub = null;       // Firestore snapshot unsubscribe
+let cloudApplying = false;  // guard: don't re-upload while applying a remote change
+let pushTimer = null;
+
+function localUpdatedAt() { return Number(localStorage.getItem('aqua.updatedAt') || 0); }
+function markUpdated() { try { localStorage.setItem('aqua.updatedAt', String(Date.now())); } catch (e) {} }
+
+// Debounced push of the whole state to the user's cloud doc.
+function syncPush() {
+  if (!FB || !account) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(async () => {
+    try {
+      await FB.db.collection('users').doc(account.uid).set(
+        { data: JSON.stringify(state), nickname: account.nickname || '', updatedAt: Date.now() },
+        { merge: true }
+      );
+      setSyncBadge('ok');
+    } catch (e) { setSyncBadge('off'); }
+  }, 900);
+}
+function applyCloudState(json) {
+  try {
+    cloudApplying = true;
+    state = deepMerge(structuredClone(DEFAULTS), JSON.parse(json));
+    migrate(state);
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    markUpdated();
+    loadProfileForm(); renderAll(); applyTheme(); applyReminder();
+    toast('Данные синхронизированы ☁️', 'ok');
+  } catch (e) { console.warn('applyCloud failed', e); }
+  finally { cloudApplying = false; }
+}
+async function startSync() {
+  if (!FB || !account) return;
+  const ref = FB.db.collection('users').doc(account.uid);
+  try {
+    const snap = await ref.get();
+    if (snap.exists && snap.data() && snap.data().data) {
+      const cloud = snap.data();
+      if ((cloud.updatedAt || 0) > localUpdatedAt()) applyCloudState(cloud.data); // cloud is newer
+      else syncPush();                                                            // local is newer → upload
+    } else {
+      syncPush(); // brand-new account → seed it with local data
+    }
+    setSyncBadge('ok');
+  } catch (e) { setSyncBadge('off'); }
+  // live updates pushed from other devices
+  syncUnsub = ref.onSnapshot((s) => {
+    if (!s.exists || s.metadata.hasPendingWrites) return; // ignore our own optimistic writes
+    const cloud = s.data();
+    if (cloud && cloud.data && (cloud.updatedAt || 0) > localUpdatedAt()) applyCloudState(cloud.data);
+  }, () => setSyncBadge('off'));
+}
+function stopSync() { if (syncUnsub) { syncUnsub(); syncUnsub = null; } }
+
+function authRegister(email, password, nickname) {
+  return FB.auth.createUserWithEmailAndPassword(email, password).then((cred) =>
+    (nickname ? cred.user.updateProfile({ displayName: nickname }) : Promise.resolve()).then(() => cred.user));
+}
+function authLogin(email, password) { return FB.auth.signInWithEmailAndPassword(email, password).then((c) => c.user); }
+function authLogout() { return FB.auth.signOut(); }
+function authErrMsg(e) {
+  const c = (e && e.code) || '';
+  if (c.includes('email-already-in-use')) return 'Эта почта уже занята — войди';
+  if (c.includes('invalid-email')) return 'Неверный формат почты';
+  if (c.includes('weak-password')) return 'Пароль слишком простой (минимум 6 символов)';
+  if (c.includes('wrong-password') || c.includes('invalid-credential') || c.includes('user-not-found')) return 'Неверная почта или пароль';
+  if (c.includes('too-many-requests')) return 'Слишком много попыток — подожди немного';
+  if (c.includes('network')) return 'Нет подключения к сети';
+  return (e && e.message) || 'Ошибка';
+}
+function initAuth() {
+  if (!FB) return;
+  FB.auth.onAuthStateChanged((user) => {
+    if (user) { account = { uid: user.uid, email: user.email, nickname: user.displayName || '' }; window.account = account; startSync(); }
+    else { account = null; window.account = null; stopSync(); setSyncBadge(null); }
+    renderAccountCard(); updateTopbar();
+  });
+}
+function setSyncBadge(status) {
+  const b = $('#syncBadge'); if (!b) return;
+  if (!account || !status) { b.hidden = true; return; }
+  b.hidden = false;
+  b.textContent = status === 'ok' ? '☁️' : '⚠️';
+  b.title = status === 'ok' ? 'Синхронизировано' : 'Нет синхронизации';
+}
+function renderAccountCard() {
+  const box = $('#accountCard'); if (!box) return;
+  if (!FB) { box.innerHTML = '<div class="card"><p class="hint" style="margin:0">Облачная синхронизация недоступна (не загрузился Firebase).</p></div>'; return; }
+  if (account) {
+    const initial = (account.nickname || account.email || '?').trim().slice(0, 1).toUpperCase();
+    box.innerHTML = `<div class="card acc-card">
+      <div class="acc-head">
+        <div class="acc-avatar">${escapeHtml(initial)}</div>
+        <div class="acc-info"><b>${escapeHtml(account.nickname || 'Аккаунт')}</b><span>${escapeHtml(account.email || '')}</span></div>
+      </div>
+      <div class="acc-sync">☁️ Синхронизация включена — данные на телефоне и компьютере совпадают</div>
+      <button class="btn ghost full" id="accLogout">Выйти</button>
+    </div>`;
+    $('#accLogout').onclick = () => { authLogout(); toast('Вышел из аккаунта'); };
+    return;
+  }
+  box.innerHTML = `<div class="card acc-card">
+    <div class="card-head"><h3>👤 Аккаунт и синхронизация</h3></div>
+    <p class="hint" style="margin-top:0">Войди, чтобы данные синхронизировались между телефоном и компьютером.</p>
+    <div class="acc-tabs"><button class="acc-tab active" data-at="login">Вход</button><button class="acc-tab" data-at="register">Регистрация</button></div>
+    <div class="acc-form">
+      <input type="text" id="accNick" placeholder="Никнейм" autocomplete="nickname" hidden>
+      <input type="email" id="accEmail" placeholder="Почта" autocomplete="email">
+      <input type="password" id="accPass" placeholder="Пароль (мин. 6 символов)" autocomplete="current-password">
+      <div class="acc-err" id="accErr"></div>
+      <button class="btn primary full" id="accSubmit">Войти</button>
+    </div>
+  </div>`;
+  let mode = 'login';
+  const nick = $('#accNick'), submit = $('#accSubmit'), err = $('#accErr');
+  $$('.acc-tab').forEach((t) => (t.onclick = () => {
+    mode = t.dataset.at; $$('.acc-tab').forEach((x) => x.classList.toggle('active', x === t));
+    nick.hidden = mode !== 'register'; submit.textContent = mode === 'register' ? 'Создать аккаунт' : 'Войти'; err.textContent = '';
+  }));
+  submit.onclick = async () => {
+    err.textContent = '';
+    const email = $('#accEmail').value.trim(), pass = $('#accPass').value, nk = nick.value.trim();
+    if (!email || !pass) { err.textContent = 'Заполни почту и пароль'; return; }
+    if (mode === 'register' && !nk) { err.textContent = 'Придумай никнейм'; return; }
+    submit.disabled = true; const label = submit.textContent; submit.textContent = '…';
+    try {
+      if (mode === 'register') await authRegister(email, pass, nk); else await authLogin(email, pass);
+      toast('Готово! Синхронизация включена ☁️', 'ok');
+    } catch (e) { err.textContent = authErrMsg(e); submit.disabled = false; submit.textContent = label; }
+  };
+}
+
 /* ---------- birthday greeting + confetti ---------- */
 function isBirthdayToday() {
   const bd = state.profile.birthday; if (!bd) return false;
@@ -2921,6 +3065,7 @@ function init() {
   if (!state.profile.onboarded && !state.profile.weight) setTimeout(() => openOnboarding(true), 1000);
   checkBirthday();
   setTimeout(maybeShowInstallHint, 2800);
+  initAuth(); // Firebase auth state + cloud sync
   // PWA: register service worker (offline shell + notifications). Only over http(s).
   if (SERVED && 'serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});

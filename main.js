@@ -20,7 +20,8 @@ const isDev = process.argv.includes('--dev');
 const UPDATE_BASE = 'https://raw.githubusercontent.com/lev-dev-tech/aqua-tracker/main';
 const UPDATE_DIR = __dirname; // resources/app — per-user install, writable without admin
 // Renderer files apply on reload; main.js/preload.js apply on the next app launch.
-const UPDATE_FILES = ['index.html', 'app.js', 'styles.css', 'theme-init.js', 'sw.js', 'manifest.json', 'main.js', 'preload.js'];
+const UPDATE_FILES = ['index.html', 'app.js', 'styles.css', 'theme-init.js', 'sw.js', 'manifest.json', 'main.js', 'preload.js',
+  'firebase-init.js', 'vendor/firebase-app-compat.js', 'vendor/firebase-auth-compat.js', 'vendor/firebase-firestore-compat.js'];
 
 function localVersion() {
   try { return String(JSON.parse(fs.readFileSync(path.join(UPDATE_DIR, 'version.json'), 'utf8')).version || '0'); }
@@ -48,7 +49,7 @@ function applyStagedUpdate() {
   try {
     const staged = [...UPDATE_FILES, 'version.json'].filter((f) => fs.existsSync(path.join(UPDATE_DIR, f + '.new')));
     if (!staged.length) return false;
-    for (const f of staged) fs.renameSync(path.join(UPDATE_DIR, f + '.new'), path.join(UPDATE_DIR, f));
+    for (const f of staged) { const dst = path.join(UPDATE_DIR, f); fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.renameSync(path.join(UPDATE_DIR, f + '.new'), dst); }
     return true;
   } catch (e) { return false; }
 }
@@ -69,7 +70,7 @@ async function checkForUpdate() {
     updateStaging = (async () => {
       const bufs = {};
       for (const f of files) bufs[f] = await fetchBuf(UPDATE_BASE + '/' + f + bust);
-      for (const f of files) fs.writeFileSync(path.join(UPDATE_DIR, f + '.new'), bufs[f]);
+      for (const f of files) { const p = path.join(UPDATE_DIR, f + '.new'); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, bufs[f]); }
       fs.writeFileSync(path.join(UPDATE_DIR, 'version.json.new'), JSON.stringify(remote));
     })();
     await updateStaging;
