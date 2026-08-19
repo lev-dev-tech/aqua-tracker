@@ -232,10 +232,16 @@ function switchView(v) {
   if (!VIEW_TITLES[v]) return;
   currentView = v;
   $$('.nav-item').forEach((b) => b.classList.toggle('active', b.dataset.view === v));
+  // mobile bottom-nav active state ("Ещё" lights up for views not on the bar)
+  const MOBILE_TABS = ['dashboard', 'water', 'nutrition', 'finance'];
+  $$('.mnav-item[data-view]').forEach((b) => b.classList.toggle('active', b.dataset.view === v));
+  const more = $('#mnavMore'); if (more) more.classList.toggle('active', !MOBILE_TABS.includes(v));
   $$('.view').forEach((s) => s.classList.toggle('active', s.dataset.view === v));
   $('#viewTitle').textContent = VIEW_TITLES[v];
   renderView(v);
 }
+function openMobileSheet() { const s = $('#mobileSheet'); if (!s) return; s.hidden = false; requestAnimationFrame(() => s.classList.add('open')); }
+function closeMobileSheet() { const s = $('#mobileSheet'); if (!s) return; s.classList.remove('open'); setTimeout(() => { s.hidden = true; }, 280); }
 
 // ---- day paging (view/log past days) ----
 function shiftDay(delta) {
@@ -2635,6 +2641,13 @@ function wire() {
   $$('.nav-item').forEach((b) => (b.onclick = () => switchView(b.dataset.view)));
   $$('[data-goto]').forEach((b) => (b.onclick = () => switchView(b.dataset.goto)));
   $('#themeToggle').onclick = openThemePicker;
+
+  // mobile bottom nav + "Ещё" sheet
+  $$('#mobileNav .mnav-item[data-view]').forEach((b) => (b.onclick = () => switchView(b.dataset.view)));
+  const mMore = $('#mnavMore'); if (mMore) mMore.onclick = openMobileSheet;
+  $$('#mobileSheet .msheet-item[data-view]').forEach((b) => (b.onclick = () => { switchView(b.dataset.view); closeMobileSheet(); }));
+  const mTheme = $('#msheetTheme'); if (mTheme) mTheme.onclick = () => { closeMobileSheet(); openThemePicker(); };
+  const sheet = $('#mobileSheet'); if (sheet) sheet.onclick = (e) => { if (e.target === sheet) closeMobileSheet(); };
 
   // day paging
   $('#dayPrev').onclick = () => shiftDay(-1);

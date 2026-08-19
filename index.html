@@ -453,6 +453,28 @@
     </main>
   </div>
 
+  <!-- ===================== MOBILE BOTTOM NAV ===================== -->
+  <nav class="mobile-nav" id="mobileNav">
+    <button class="mnav-item active" data-view="dashboard"><span class="ic">🏠</span><span class="mnav-label">Обзор</span></button>
+    <button class="mnav-item" data-view="water"><span class="ic">💧</span><span class="mnav-label">Вода</span></button>
+    <button class="mnav-item" data-view="nutrition"><span class="ic">🍎</span><span class="mnav-label">Еда</span></button>
+    <button class="mnav-item" data-view="finance"><span class="ic">💰</span><span class="mnav-label">Финансы</span></button>
+    <button class="mnav-item" id="mnavMore"><span class="ic">☰</span><span class="mnav-label">Ещё</span></button>
+  </nav>
+  <div class="mobile-sheet" id="mobileSheet" hidden>
+    <div class="msheet-panel">
+      <div class="msheet-handle"></div>
+      <div class="msheet-grid">
+        <button class="msheet-item" data-view="tasks"><span class="msi-ic">✅</span>Задачи</button>
+        <button class="msheet-item" data-view="habits"><span class="msi-ic">🔥</span>Привычки</button>
+        <button class="msheet-item" data-view="focus"><span class="msi-ic">⏱️</span>Фокус</button>
+        <button class="msheet-item" data-view="calendar"><span class="msi-ic">📅</span>Календарь</button>
+        <button class="msheet-item" data-view="profile"><span class="msi-ic">⚙️</span>Профиль</button>
+        <button class="msheet-item" id="msheetTheme"><span class="msi-ic">🎨</span>Тема</button>
+      </div>
+    </div>
+  </div>
+
   <!-- toast -->
   <div class="toast" id="toast"></div>
 
