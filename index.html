@@ -384,10 +384,12 @@
                   <select id="pSex"><option value="male">Мужской</option><option value="female">Женский</option></select>
                 </label>
                 <label>Дата рождения
-                  <div class="dob-row">
-                    <input type="number" id="pDobD" min="1" max="31" placeholder="ДД" inputmode="numeric" />
-                    <input type="number" id="pDobM" min="1" max="12" placeholder="ММ" inputmode="numeric" />
-                    <input type="number" id="pDobY" min="1900" max="2025" placeholder="ГГГГ" inputmode="numeric" />
+                  <div class="dob-row" data-dob>
+                    <input type="text" id="pDobD" maxlength="2" placeholder="ДД" inputmode="numeric" autocomplete="off" />
+                    <span class="dob-sep">.</span>
+                    <input type="text" id="pDobM" maxlength="2" placeholder="ММ" inputmode="numeric" autocomplete="off" />
+                    <span class="dob-sep">.</span>
+                    <input type="text" id="pDobY" maxlength="4" placeholder="ГГГГ" inputmode="numeric" autocomplete="off" />
                   </div>
                 </label>
                 <label>Рост<input type="number" id="pHeight" min="120" max="230" placeholder="см" /></label>

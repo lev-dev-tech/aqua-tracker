@@ -1487,6 +1487,29 @@ function renderStreakGoal() {
 /* ============================================================
    PROFILE
    ============================================================ */
+// Digit-only DOB fields: strip non-digits, soft-clamp day/month, auto-advance, backspace-back.
+function wireDob(root) {
+  (root || document).querySelectorAll('.dob-row[data-dob]').forEach((row) => {
+    if (row._dobWired) return; row._dobWired = true;
+    const ins = [...row.querySelectorAll('input')];
+    ins.forEach((el, i) => {
+      const max = el.maxLength;
+      el.addEventListener('input', () => {
+        let v = el.value.replace(/\D/g, '').slice(0, max);
+        if (max === 2 && v.length === 2) {          // full day/month → clamp into range
+          const n = Number(v), cap = i === 0 ? 31 : 12;
+          if (n > cap) v = String(cap);
+          else if (n === 0) v = i === 0 ? '01' : '01';
+        }
+        el.value = v;
+        if (v.length >= max && ins[i + 1]) ins[i + 1].focus();
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !el.value && ins[i - 1]) { ins[i - 1].focus(); e.preventDefault(); }
+      });
+    });
+  });
+}
 function loadProfileForm() {
   const p = state.profile;
   $('#pName').value = p.name || '';
@@ -1511,6 +1534,7 @@ function loadProfileForm() {
   }
   renderAccountCard();
   renderCalc();
+  wireDob(document);
 }
 // Show target-weight + rate only for weight-change goals.
 function updateGoalFields() {
@@ -1698,10 +1722,12 @@ function openOnboarding(first) {
           ${card(d.sex === 'female', '👩', 'Женский', '', 'female')}
         </div>
         <label class="mlabel">Дата рождения</label>
-        <div class="dob-row">
-          <input type="number" id="onbDobD" min="1" max="31" placeholder="ДД" inputmode="numeric" value="${d.dobD || ''}">
-          <input type="number" id="onbDobM" min="1" max="12" placeholder="ММ" inputmode="numeric" value="${d.dobM || ''}">
-          <input type="number" id="onbDobY" min="1900" max="2025" placeholder="ГГГГ" inputmode="numeric" value="${d.dobY || ''}">
+        <div class="dob-row" data-dob>
+          <input type="text" id="onbDobD" maxlength="2" placeholder="ДД" inputmode="numeric" autocomplete="off" value="${d.dobD || ''}">
+          <span class="dob-sep">.</span>
+          <input type="text" id="onbDobM" maxlength="2" placeholder="ММ" inputmode="numeric" autocomplete="off" value="${d.dobM || ''}">
+          <span class="dob-sep">.</span>
+          <input type="text" id="onbDobY" maxlength="4" placeholder="ГГГГ" inputmode="numeric" autocomplete="off" value="${d.dobY || ''}">
         </div>`;
     }
     if (cur === 'body') {
@@ -1783,6 +1809,7 @@ function openOnboarding(first) {
     const bind = (sel, key) => { const el = ov.querySelector(sel); if (el) el.oninput = () => { d[key] = Number(el.value) || null; }; };
     bind('#onbDobD', 'dobD'); bind('#onbDobM', 'dobM'); bind('#onbDobY', 'dobY');
     bind('#onbHeight', 'height'); bind('#onbWeight', 'weight'); bind('#onbTarget', 'targetWeight');
+    wireDob(ov);
     ov.querySelector('[data-next]').onclick = next;
     const bk = ov.querySelector('[data-back]'); if (bk) bk.onclick = () => { step--; render(); };
     const sk = ov.querySelector('[data-skip]'); if (sk) sk.onclick = () => { if (first) { state.profile.onboarded = true; save(); } ov.remove(); };
@@ -2942,9 +2969,13 @@ function renderAccountCard() {
   box.innerHTML = `<div class="card acc-card">
     <div class="card-head"><h3>👤 Аккаунт и синхронизация</h3></div>
     <p class="hint" style="margin-top:0">Войди, чтобы данные синхронизировались между телефоном и компьютером.</p>
-    <div class="acc-tabs"><button class="acc-tab active" data-at="login">Вход</button><button class="acc-tab" data-at="register">Регистрация</button></div>
+    <div class="acc-tabs" data-mode="login">
+      <span class="acc-pill"></span>
+      <button class="acc-tab active" data-at="login">Вход</button>
+      <button class="acc-tab" data-at="register">Регистрация</button>
+    </div>
     <div class="acc-form">
-      <input type="text" id="accNick" placeholder="Никнейм" autocomplete="nickname" hidden>
+      <div class="acc-nick-wrap"><input type="text" id="accNick" placeholder="Никнейм" autocomplete="nickname"></div>
       <input type="email" id="accEmail" placeholder="Почта" autocomplete="email">
       <input type="password" id="accPass" placeholder="Пароль (мин. 6 символов)" autocomplete="current-password">
       <div class="acc-err" id="accErr"></div>
@@ -2952,10 +2983,14 @@ function renderAccountCard() {
     </div>
   </div>`;
   let mode = 'login';
+  const tabs = box.querySelector('.acc-tabs'), nickWrap = box.querySelector('.acc-nick-wrap');
   const nick = $('#accNick'), submit = $('#accSubmit'), err = $('#accErr');
   $$('.acc-tab').forEach((t) => (t.onclick = () => {
-    mode = t.dataset.at; $$('.acc-tab').forEach((x) => x.classList.toggle('active', x === t));
-    nick.hidden = mode !== 'register'; submit.textContent = mode === 'register' ? 'Создать аккаунт' : 'Войти'; err.textContent = '';
+    mode = t.dataset.at; tabs.dataset.mode = mode;
+    $$('.acc-tab').forEach((x) => x.classList.toggle('active', x === t));
+    nickWrap.classList.toggle('show', mode === 'register');
+    submit.textContent = mode === 'register' ? 'Создать аккаунт' : 'Войти'; err.textContent = '';
+    if (mode === 'register') setTimeout(() => nick.focus(), 200);
   }));
   submit.onclick = async () => {
     err.textContent = '';
@@ -3031,13 +3066,16 @@ function maybeShowInstallHint() {
   if (!isMobile) return;
   const ios = /iphone|ipad|ipod/i.test(ua);
   const el = document.createElement('div'); el.className = 'install-hint';
+  const steps = ios
+    ? `<span class="ih-step"><i class="ih-num">1</i>Нажми <b>Поделиться</b> <span class="ih-share">⬆︎</span> внизу Safari</span>
+       <span class="ih-step"><i class="ih-num">2</i>Выбери <b>«На экран „Домой"»</b> ➕</span>`
+    : `<span class="ih-step"><i class="ih-num">1</i>Открой меню браузера <b>⋮</b></span>
+       <span class="ih-step"><i class="ih-num">2</i>Нажми <b>«Установить приложение»</b></span>`;
   el.innerHTML = `<button class="ih-close" aria-label="Закрыть">✕</button>
     <div class="ih-ic">📲</div>
     <div class="ih-body">
-      <b>Установи Aqua как приложение</b>
-      <span>${ios
-        ? 'Нажми <b>Поделиться</b> ⬆️ внизу Safari → <b>«На экран „Домой"»</b>'
-        : 'Меню браузера <b>⋮</b> → <b>«Установить приложение»</b>'}</span>
+      <b>Установи Aqua на телефон</b>
+      <div class="ih-steps">${steps}</div>
     </div>`;
   document.body.appendChild(el);
   requestAnimationFrame(() => el.classList.add('show'));
