@@ -991,6 +991,34 @@ async function analyzePhoto() {
 let taskFilter = 'all';
 let currentFolder = 'all';
 function catOf(t) { return (t.category && t.category.trim()) ? t.category.trim() : 'Общие'; }
+// Styled category picker: type your own OR pick a template (replaces the plain white <datalist>).
+const CAT_TEMPLATES = [
+  ['💼', 'Работа'], ['🙂', 'Личное'], ['🏠', 'Дом'], ['📚', 'Учёба'],
+  ['❤️', 'Здоровье'], ['🛒', 'Покупки'], ['🚀', 'Проект'], ['💡', 'Идеи'],
+];
+function initCatPicker() {
+  const field = $('#catField'), input = $('#taskCat'), menu = $('#catMenu'), caret = $('#catCaret');
+  if (!field || field._wired) return; field._wired = true;
+  const cur = () => (input.value || '').trim().toLowerCase();
+  const close = () => field.classList.remove('open');
+  const render = () => {
+    const f = cur();
+    const items = CAT_TEMPLATES.filter(([, n]) => !f || n.toLowerCase().includes(f));
+    if (items.length) {
+      menu.innerHTML = items.map(([ic, n]) =>
+        `<button type="button" class="cat-item${input.value.trim() === n ? ' sel' : ''}" data-val="${n}"><span class="cat-ic">${ic}</span>${n}</button>`).join('');
+    } else {
+      menu.innerHTML = `<div class="cat-empty">Своя категория: <b>${escapeHtml(input.value.trim())}</b></div>`;
+    }
+    menu.querySelectorAll('.cat-item').forEach((b) => (b.onmousedown = (e) => { e.preventDefault(); input.value = b.dataset.val; close(); }));
+  };
+  const open = () => { render(); field.classList.add('open'); };
+  input.addEventListener('focus', open);
+  input.addEventListener('input', open);
+  caret.addEventListener('mousedown', (e) => { e.preventDefault(); if (field.classList.contains('open')) close(); else { input.focus(); open(); } });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Escape' || e.key === 'Enter') close(); });
+  document.addEventListener('click', (e) => { if (!field.contains(e.target)) close(); });
+}
 function addTask() {
   const inp = $('#taskInput');
   const text = inp.value.trim();
@@ -2773,6 +2801,7 @@ function wire() {
   // tasks
   $('#taskAddBtn').onclick = addTask;
   $('#taskInput').onkeydown = (e) => { if (e.key === 'Enter') addTask(); };
+  initCatPicker();
   $$('.task-filters .chip').forEach((c) => (c.onclick = () => { taskFilter = c.dataset.filter; $$('.task-filters .chip').forEach((x) => x.classList.toggle('active', x === c)); renderTasks(); }));
   $('#clearDoneBtn').onclick = clearDone;
 

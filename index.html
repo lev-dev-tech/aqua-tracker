@@ -279,12 +279,11 @@
           <div class="card tasks-card wide">
             <div class="task-input">
               <input type="text" id="taskInput" placeholder="Новая задача... (Enter — добавить)" />
-              <input type="text" id="taskCat" list="catList" placeholder="Категория (своя или шаблон)" />
-              <datalist id="catList">
-                <option value="Работа"></option><option value="Личное"></option><option value="Дом"></option>
-                <option value="Учёба"></option><option value="Здоровье"></option><option value="Покупки"></option>
-                <option value="Проект"></option><option value="Идеи"></option>
-              </datalist>
+              <div class="cat-field" id="catField">
+                <input type="text" id="taskCat" placeholder="Категория" autocomplete="off" />
+                <span class="cat-caret" id="catCaret">▾</span>
+                <div class="cat-menu" id="catMenu" role="listbox"></div>
+              </div>
               <select id="taskPriority" title="Приоритет">
                 <option value="low">Низкий</option>
                 <option value="mid" selected>Средний</option>
@@ -383,7 +382,7 @@
                 <label>Пол
                   <select id="pSex"><option value="male">Мужской</option><option value="female">Женский</option></select>
                 </label>
-                <label>Дата рождения
+                <label class="span2">Дата рождения
                   <div class="dob-row" data-dob>
                     <input type="text" id="pDobD" maxlength="2" placeholder="ДД" inputmode="numeric" autocomplete="off" />
                     <span class="dob-sep">.</span>
