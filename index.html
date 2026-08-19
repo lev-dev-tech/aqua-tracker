@@ -381,7 +381,13 @@
                 <label>Пол
                   <select id="pSex"><option value="male">Мужской</option><option value="female">Женский</option></select>
                 </label>
-                <label>Возраст<input type="number" id="pAge" min="10" max="100" placeholder="лет" /></label>
+                <label>Дата рождения
+                  <div class="dob-row">
+                    <input type="number" id="pDobD" min="1" max="31" placeholder="ДД" inputmode="numeric" />
+                    <input type="number" id="pDobM" min="1" max="12" placeholder="ММ" inputmode="numeric" />
+                    <input type="number" id="pDobY" min="1900" max="2025" placeholder="ГГГГ" inputmode="numeric" />
+                  </div>
+                </label>
                 <label>Рост<input type="number" id="pHeight" min="120" max="230" placeholder="см" /></label>
                 <label>Вес<input type="number" id="pWeight" min="30" max="250" placeholder="кг" /></label>
                 <label>Активность

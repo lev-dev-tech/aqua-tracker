@@ -31,7 +31,7 @@ function isSelToday() { return curKey() === todayKey(); }
 const LS_KEY = 'aqua.state.v1';
 const DEFAULTS = {
   profile: {
-    name: '', sex: 'male', age: null, height: null, weight: null, activity: 1.375, avatar: '🙂',
+    name: '', sex: 'male', age: null, birthday: '', height: null, weight: null, activity: 1.375, avatar: '🙂',
     goal: 'maintain',    // lose | maintain | gain | muscle
     goalRate: 0.5,       // kg per week (for lose / gain)
     targetWeight: null,  // kg
@@ -46,6 +46,7 @@ const DEFAULTS = {
     reminder: { enabled: false, intervalMinutes: 90, quietFrom: 23, quietTo: 8 },
     aiKey: '',
     streakGoal: 7,
+    lastBdayGreet: 0, // year we last showed the birthday greeting
   },
   days: {},
   tasks: [],
@@ -156,12 +157,24 @@ function macroSplit(kcal, goal) {
   else                        { p = 0.28; f = 0.28; c = 0.44; }
   return { prot: Math.round(kcal * p / 4), fat: Math.round(kcal * f / 9), carb: Math.round(kcal * c / 4) };
 }
+// Age from a YYYY-MM-DD birthday (preferred), else the legacy plain age field.
+function ageFromBirthday(bd) {
+  if (!bd) return null;
+  const d = new Date(bd + 'T00:00'); if (isNaN(d)) return null;
+  const now = new Date(); let a = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--;
+  return a > 0 && a < 130 ? a : null;
+}
+function profileAge() { return ageFromBirthday(state.profile.birthday) || state.profile.age || null; }
+
 function computeGoals() {
   const p = state.profile;
   let bmr = null, tdee = null, kcal = 2000, water = 2000, delta = 0;
   const goal = p.goal || 'maintain';
-  if (p.weight && p.height && p.age) {
-    bmr = 10 * p.weight + 6.25 * p.height - 5 * p.age + (p.sex === 'male' ? 5 : -161);
+  const age = profileAge();
+  if (p.weight && p.height && age) {
+    bmr = 10 * p.weight + 6.25 * p.height - 5 * age + (p.sex === 'male' ? 5 : -161);
     tdee = bmr * (p.activity || 1.375);
     delta = goalDelta(tdee, goal, p.goalRate);
     let target = tdee + delta;
@@ -1477,7 +1490,10 @@ function loadProfileForm() {
   const p = state.profile;
   $('#pName').value = p.name || '';
   $('#pSex').value = p.sex;
-  $('#pAge').value = p.age || '';
+  const bd = /^\d{4}-\d{2}-\d{2}$/.test(p.birthday || '') ? p.birthday.split('-') : ['', '', ''];
+  $('#pDobD').value = bd[2] ? Number(bd[2]) : '';
+  $('#pDobM').value = bd[1] ? Number(bd[1]) : '';
+  $('#pDobY').value = bd[0] ? Number(bd[0]) : '';
   $('#pHeight').value = p.height || '';
   $('#pWeight').value = p.weight || '';
   $('#pActivity').value = String(p.activity);
@@ -1506,7 +1522,13 @@ function saveProfile() {
   const p = state.profile;
   p.name = $('#pName').value.trim();
   p.sex = $('#pSex').value;
-  p.age = Number($('#pAge').value) || null;
+  const dd = Number($('#pDobD').value), mm = Number($('#pDobM').value), yy = Number($('#pDobY').value);
+  if (dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12 && yy >= 1900 && yy <= 2100) {
+    p.birthday = `${yy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+    p.age = ageFromBirthday(p.birthday) || p.age;
+  } else if (!$('#pDobD').value && !$('#pDobM').value && !$('#pDobY').value) {
+    p.birthday = '';
+  }
   p.height = Number($('#pHeight').value) || null;
   const newWeight = Number($('#pWeight').value) || null;
   p.activity = Number($('#pActivity').value);
@@ -1641,8 +1663,11 @@ function previewGoals(d) {
 
 function openOnboarding(first) {
   const p = state.profile;
+  const bd0 = /^\d{4}-\d{2}-\d{2}$/.test(p.birthday || '') ? p.birthday.split('-') : ['', '', ''];
   const d = {
-    sex: p.sex || 'male', age: p.age || null, height: p.height || null, weight: p.weight || null,
+    sex: p.sex || 'male', age: p.age || null, birthday: p.birthday || '',
+    dobD: bd0[2] ? Number(bd0[2]) : '', dobM: bd0[1] ? Number(bd0[1]) : '', dobY: bd0[0] ? Number(bd0[0]) : '',
+    height: p.height || null, weight: p.weight || null,
     activity: p.activity || 1.375, goal: p.goal || 'maintain', goalRate: p.goalRate || 0.5,
     targetWeight: p.targetWeight || null,
   };
@@ -1670,8 +1695,12 @@ function openOnboarding(first) {
           ${card(d.sex === 'male', '👨', 'Мужской', '', 'male')}
           ${card(d.sex === 'female', '👩', 'Женский', '', 'female')}
         </div>
-        <label class="mlabel">Возраст</label>
-        <input type="number" id="onbAge" min="10" max="100" placeholder="лет" value="${d.age || ''}">`;
+        <label class="mlabel">Дата рождения</label>
+        <div class="dob-row">
+          <input type="number" id="onbDobD" min="1" max="31" placeholder="ДД" inputmode="numeric" value="${d.dobD || ''}">
+          <input type="number" id="onbDobM" min="1" max="12" placeholder="ММ" inputmode="numeric" value="${d.dobM || ''}">
+          <input type="number" id="onbDobY" min="1900" max="2025" placeholder="ГГГГ" inputmode="numeric" value="${d.dobY || ''}">
+        </div>`;
     }
     if (cur === 'body') {
       return `<h3 class="onb-title">Параметры тела</h3>
@@ -1750,7 +1779,8 @@ function openOnboarding(first) {
     }));
     // Live-bind text inputs so a card click (which re-renders) never wipes typed values.
     const bind = (sel, key) => { const el = ov.querySelector(sel); if (el) el.oninput = () => { d[key] = Number(el.value) || null; }; };
-    bind('#onbAge', 'age'); bind('#onbHeight', 'height'); bind('#onbWeight', 'weight'); bind('#onbTarget', 'targetWeight');
+    bind('#onbDobD', 'dobD'); bind('#onbDobM', 'dobM'); bind('#onbDobY', 'dobY');
+    bind('#onbHeight', 'height'); bind('#onbWeight', 'weight'); bind('#onbTarget', 'targetWeight');
     ov.querySelector('[data-next]').onclick = next;
     const bk = ov.querySelector('[data-back]'); if (bk) bk.onclick = () => { step--; render(); };
     const sk = ov.querySelector('[data-skip]'); if (sk) sk.onclick = () => { if (first) { state.profile.onboarded = true; save(); } ov.remove(); };
@@ -1759,7 +1789,13 @@ function openOnboarding(first) {
   function next() {
     const S = stepList();
     const cur = S[step];
-    if (cur === 'welcome') { d.age = Number($('#onbAge', ov).value) || null; if (!d.age) return toast('Укажи возраст', 'err'); }
+    if (cur === 'welcome') {
+      d.dobD = Number($('#onbDobD', ov).value) || ''; d.dobM = Number($('#onbDobM', ov).value) || ''; d.dobY = Number($('#onbDobY', ov).value) || '';
+      if (!(d.dobD >= 1 && d.dobD <= 31 && d.dobM >= 1 && d.dobM <= 12 && d.dobY >= 1900 && d.dobY <= 2100)) return toast('Укажи дату рождения', 'err');
+      d.birthday = `${d.dobY}-${String(d.dobM).padStart(2, '0')}-${String(d.dobD).padStart(2, '0')}`;
+      d.age = ageFromBirthday(d.birthday);
+      if (!d.age) return toast('Проверь дату рождения', 'err');
+    }
     if (cur === 'body') {
       d.height = Number($('#onbHeight', ov).value) || null;
       d.weight = Number($('#onbWeight', ov).value) || null;
@@ -1777,7 +1813,7 @@ function openOnboarding(first) {
 
   function finish() {
     Object.assign(state.profile, {
-      sex: d.sex, age: d.age, height: d.height, activity: d.activity,
+      sex: d.sex, age: d.age, birthday: d.birthday || '', height: d.height, activity: d.activity,
       goal: d.goal, goalRate: d.goalRate,
       targetWeight: (d.goal === 'lose' || d.goal === 'gain') ? d.targetWeight : null,
       startWeight: d.weight, onboarded: true,
@@ -2790,6 +2826,80 @@ function loadPhoto(file) {
 /* ============================================================
    INIT
    ============================================================ */
+/* ---------- birthday greeting + confetti ---------- */
+function isBirthdayToday() {
+  const bd = state.profile.birthday; if (!bd) return false;
+  const d = new Date(bd + 'T00:00'); if (isNaN(d)) return false;
+  const now = new Date();
+  return d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+}
+function checkBirthday() {
+  if (!isBirthdayToday()) return;
+  const y = new Date().getFullYear();
+  if (state.settings.lastBdayGreet === y) return; // already greeted this year
+  state.settings.lastBdayGreet = y; save();
+  setTimeout(birthdayGreeting, 1700); // after the splash
+}
+function confettiBurst() {
+  const box = document.createElement('div'); box.className = 'confetti-box';
+  document.body.appendChild(box);
+  const colors = ['#6366f1', '#22d3ee', '#34d399', '#fbbf24', '#fb7185', '#a78bfa', '#f472b6', '#f59e0b'];
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement('i'); c.className = 'confetti';
+    c.style.left = Math.random() * 100 + '%';
+    c.style.background = colors[i % colors.length];
+    c.style.animationDelay = (Math.random() * 0.8).toFixed(2) + 's';
+    c.style.animationDuration = (2.2 + Math.random() * 1.8).toFixed(2) + 's';
+    if (Math.random() < 0.4) c.style.borderRadius = '50%';
+    if (Math.random() < 0.5) c.classList.add('rev');
+    box.appendChild(c);
+  }
+  ['pop-tl', 'pop-tr', 'pop-bl', 'pop-br'].forEach((cls) => {
+    const p = document.createElement('div'); p.className = 'popper ' + cls; p.textContent = '🎉'; box.appendChild(p);
+  });
+  setTimeout(() => box.remove(), 5200);
+}
+function birthdayGreeting() {
+  const name = (state.profile.name || (window.account && account.nickname) || '').trim();
+  const age = ageFromBirthday(state.profile.birthday);
+  confettiBurst();
+  const ov = document.createElement('div'); ov.className = 'modal-ov bday-ov';
+  ov.innerHTML = `<div class="card bday-card">
+    <div class="bday-emoji">🎂</div>
+    <h3 class="modal-title">С днём рождения${name ? ', ' + escapeHtml(name) : ''}!</h3>
+    <p class="onb-sub">${age ? 'Тебе сегодня ' + age + '! ' : ''}Пусть новый год будет самым здоровым и ярким. Aqua рядом каждый день 💧</p>
+    <button class="btn primary full" data-close>Спасибо 🥳</button>
+  </div>`;
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.querySelector('[data-close]').onclick = close;
+  ov.onclick = (e) => { if (e.target === ov) close(); };
+}
+
+/* ---------- "Add to Home Screen" hint (mobile PWA, not Electron) ---------- */
+function maybeShowInstallHint() {
+  if (DESKTOP || !SERVED) return; // Electron is already a real app
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (standalone) return; // already added to Home Screen
+  if (localStorage.getItem('aqua.installHint') === 'off') return;
+  const ua = navigator.userAgent;
+  const isMobile = /iphone|ipad|ipod|android/i.test(ua) || window.innerWidth <= 820;
+  if (!isMobile) return;
+  const ios = /iphone|ipad|ipod/i.test(ua);
+  const el = document.createElement('div'); el.className = 'install-hint';
+  el.innerHTML = `<button class="ih-close" aria-label="Закрыть">✕</button>
+    <div class="ih-ic">📲</div>
+    <div class="ih-body">
+      <b>Установи Aqua как приложение</b>
+      <span>${ios
+        ? 'Нажми <b>Поделиться</b> ⬆️ внизу Safari → <b>«На экран „Домой"»</b>'
+        : 'Меню браузера <b>⋮</b> → <b>«Установить приложение»</b>'}</span>
+    </div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  el.querySelector('.ih-close').onclick = () => { localStorage.setItem('aqua.installHint', 'off'); el.classList.remove('show'); setTimeout(() => el.remove(), 320); };
+}
+
 function initSplash() {
   const s = document.getElementById('splash');
   if (!s) return;
@@ -2809,6 +2919,8 @@ function init() {
   applyReminder();
   // First run (no profile yet): offer the goal quiz once the splash clears.
   if (!state.profile.onboarded && !state.profile.weight) setTimeout(() => openOnboarding(true), 1000);
+  checkBirthday();
+  setTimeout(maybeShowInstallHint, 2800);
   // PWA: register service worker (offline shell + notifications). Only over http(s).
   if (SERVED && 'serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
