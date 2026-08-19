@@ -1,4 +1,4 @@
 {
-  "version": "1.0.1",
-  "files": ["index.html", "app.js", "styles.css", "theme-init.js", "sw.js", "manifest.json"]
+  "version": "1.0.2",
+  "files": ["index.html", "app.js", "styles.css", "theme-init.js", "sw.js", "manifest.json", "main.js", "preload.js"]
 }

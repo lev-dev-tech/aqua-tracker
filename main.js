@@ -19,7 +19,8 @@ const isDev = process.argv.includes('--dev');
    ============================================================ */
 const UPDATE_BASE = 'https://raw.githubusercontent.com/lev-dev-tech/aqua-tracker/main';
 const UPDATE_DIR = __dirname; // resources/app — per-user install, writable without admin
-const UPDATE_FILES = ['index.html', 'app.js', 'styles.css', 'theme-init.js', 'sw.js', 'manifest.json'];
+// Renderer files apply on reload; main.js/preload.js apply on the next app launch.
+const UPDATE_FILES = ['index.html', 'app.js', 'styles.css', 'theme-init.js', 'sw.js', 'manifest.json', 'main.js', 'preload.js'];
 
 function localVersion() {
   try { return String(JSON.parse(fs.readFileSync(path.join(UPDATE_DIR, 'version.json'), 'utf8')).version || '0'); }
@@ -52,20 +53,28 @@ function applyStagedUpdate() {
   } catch (e) { return false; }
 }
 // Check the remote version; if newer, download all files to *.new (applied on next launch).
+let updateStaging = null; // resolves once the *.new files are fully written
+
 async function checkForUpdate() {
   if (!/^https?:\/\//.test(UPDATE_BASE) || UPDATE_BASE.includes('USERNAME')) return 'off'; // not configured yet
   try {
     const bust = '?_=' + Date.now();
     const remote = JSON.parse((await fetchBuf(UPDATE_BASE + '/version.json' + bust)).toString('utf8'));
     if (!remote.version || !versionGt(remote.version, localVersion())) return 'uptodate';
+    // Notify the renderer right away (tiny version check) so the banner pops as the splash ends,
+    // without waiting for the file downloads.
+    if (win && win.webContents) win.webContents.send('update:available', remote.version);
+    // Download the files in the background; remember the promise so apply can await it.
     const files = Array.isArray(remote.files) && remote.files.length ? remote.files : UPDATE_FILES;
-    const bufs = {};
-    for (const f of files) bufs[f] = await fetchBuf(UPDATE_BASE + '/' + f + bust); // download all first
-    for (const f of files) fs.writeFileSync(path.join(UPDATE_DIR, f + '.new'), bufs[f]); // then stage atomically-ish
-    fs.writeFileSync(path.join(UPDATE_DIR, 'version.json.new'), JSON.stringify(remote));
-    if (win && win.webContents) win.webContents.send('update:available', remote.version); // in-app prompt
+    updateStaging = (async () => {
+      const bufs = {};
+      for (const f of files) bufs[f] = await fetchBuf(UPDATE_BASE + '/' + f + bust);
+      for (const f of files) fs.writeFileSync(path.join(UPDATE_DIR, f + '.new'), bufs[f]);
+      fs.writeFileSync(path.join(UPDATE_DIR, 'version.json.new'), JSON.stringify(remote));
+    })();
+    await updateStaging;
     return 'staged';
-  } catch (e) { return 'err'; }
+  } catch (e) { updateStaging = null; return 'err'; }
 }
 
 let win = null;
@@ -183,8 +192,13 @@ ipcMain.on('reminder:set', (_e, cfg) => scheduleReminder(cfg));
 ipcMain.on('notify', (_e, payload) => showNotification(payload || {}));
 ipcMain.on('tray:tooltip', (_e, text) => { if (tray && text) tray.setToolTip(text); });
 
-// Apply the staged update right now (rename *.new -> real) and reload the window.
-ipcMain.on('update:apply', () => { if (applyStagedUpdate() && win && win.webContents) win.webContents.reloadIgnoringCache(); });
+// Apply the staged update now: wait for the background download if it's still going,
+// rename *.new -> real, then reload the window (renderer changes apply immediately;
+// main.js/preload.js changes apply on the next launch).
+ipcMain.on('update:apply', async () => {
+  try { if (updateStaging) await updateStaging; } catch (e) {}
+  if (applyStagedUpdate() && win && win.webContents) win.webContents.reloadIgnoringCache();
+});
 // Manual "check for updates" from the app; report the result back to the renderer.
 ipcMain.on('update:check', async () => { const r = await checkForUpdate(); if (win && win.webContents) win.webContents.send('update:checked', r); });
 
@@ -214,7 +228,9 @@ if (!gotLock) {
     applyStagedUpdate();                 // apply an update downloaded on the previous launch
     createWindow();
     createTray();
-    setTimeout(checkForUpdate, 4000);    // in the background, stage the newest version for next launch
+    // Check for updates as soon as the page has loaded (renderer holds the banner until the splash ends).
+    if (win && win.webContents) win.webContents.once('did-finish-load', () => setTimeout(checkForUpdate, 500));
+    else setTimeout(checkForUpdate, 1500);
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
       else showWindow();

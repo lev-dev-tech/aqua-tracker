@@ -2747,13 +2747,17 @@ function wire() {
 /* ---------- desktop auto-update banner ---------- */
 function showUpdateBanner(version) {
   if (document.getElementById('updateBanner')) return;
+  // Let the splash animation finish first, then slide the banner in.
+  const splash = document.getElementById('splash');
+  if (splash && !splash.classList.contains('done')) { setTimeout(() => showUpdateBanner(version), 300); return; }
   const b = document.createElement('div');
   b.id = 'updateBanner'; b.className = 'update-banner';
   b.innerHTML = `<div class="ub-ic">✨</div>
-    <div class="ub-txt"><b>Доступно обновление</b><span>Версия ${escapeHtml(String(version))} готова к установке</span></div>
+    <div class="ub-txt"><b>Обновление ${escapeHtml(String(version))}</b><span>готово — установить в один клик</span></div>
     <div class="ub-actions"><button class="btn ghost sm" id="ubLater">Позже</button><button class="btn primary sm" id="ubNow">Обновить</button></div>`;
   document.body.appendChild(b);
-  b.querySelector('#ubLater').onclick = () => b.remove();
+  const close = () => { b.classList.add('out'); setTimeout(() => b.remove(), 320); };
+  b.querySelector('#ubLater').onclick = close;
   b.querySelector('#ubNow').onclick = () => {
     const btn = b.querySelector('#ubNow'); btn.textContent = 'Обновляю…'; btn.disabled = true;
     window.desktop.applyUpdate();

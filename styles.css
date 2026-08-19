@@ -980,19 +980,26 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 
 /* ===================== AUTO-UPDATE ===================== */
 .update-banner {
-  position: fixed; bottom: 22px; right: 22px; z-index: 300;
-  display: flex; align-items: center; gap: 14px; max-width: min(420px, 92vw);
-  padding: 14px 16px; border-radius: 16px;
-  background: var(--panel-solid); border: 1px solid var(--accent);
-  box-shadow: var(--shadow), 0 0 0 1px var(--accent);
-  animation: ubIn .4s var(--ease-out);
+  position: fixed; bottom: 24px; right: 24px; z-index: 300;
+  display: flex; align-items: center; gap: 13px; max-width: min(400px, 92vw);
+  padding: 13px 15px; border-radius: 18px;
+  background: var(--panel-solid); border: 1px solid var(--stroke-hi);
+  box-shadow: 0 20px 50px -18px rgba(0,0,0,.55), 0 0 34px -14px var(--accent);
+  animation: ubIn .5s var(--ease-out) both;
 }
-@keyframes ubIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-.update-banner .ub-ic { font-size: 24px; }
-.update-banner .ub-txt { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.update-banner .ub-txt b { font-size: 14.5px; }
-.update-banner .ub-txt span { font-size: 12.5px; color: var(--muted); }
-.update-banner .ub-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.update-banner.out { animation: ubOut .32s var(--ease) forwards; }
+@keyframes ubIn { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes ubOut { to { opacity: 0; transform: translateY(14px) scale(.97); } }
+.update-banner .ub-ic {
+  font-size: 20px; width: 40px; height: 40px; flex-shrink: 0;
+  display: grid; place-items: center; border-radius: 13px;
+  background: var(--grad-soft); box-shadow: inset 0 0 0 1px var(--stroke-hi);
+}
+.update-banner .ub-txt { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.update-banner .ub-txt b { font-size: 14px; font-weight: 700; }
+.update-banner .ub-txt span { font-size: 12px; color: var(--muted); }
+.update-banner .ub-actions { display: flex; gap: 7px; flex-shrink: 0; }
+.update-banner .ub-actions .btn { padding: 7px 13px; }
 .update-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--stroke); }
 .update-row b { color: var(--text); font-weight: 700; }
 
