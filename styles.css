@@ -122,6 +122,7 @@ body {
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   user-select: none;
+  touch-action: manipulation; /* kill the double-tap-to-zoom gesture on mobile */
 }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--stroke-hi); border-radius: 20px; }
@@ -1047,6 +1048,13 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .acc-nick-wrap { max-height: 0; opacity: 0; overflow: hidden; margin-top: -10px; transition: max-height .34s var(--ease-out), opacity .28s, margin-top .34s var(--ease-out); }
 .acc-nick-wrap.show { max-height: 60px; opacity: 1; margin-top: 0; }
 .acc-nick-wrap input { width: 100%; }
+.acc-link { align-self: flex-end; background: 0; border: 0; padding: 2px 0; color: var(--accent); font-family: var(--font); font-size: 12.5px; font-weight: 600; cursor: pointer; transition: color .18s, opacity .18s; }
+.acc-link:hover { color: var(--accent-2); text-decoration: underline; }
+.acc-link:disabled { opacity: .5; cursor: default; }
+.acc-forgot[hidden] { display: none; }
+.acc-verify { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; line-height: 1.4; color: var(--text-dim); background: rgba(251,191,36,.10); border: 1px solid rgba(251,191,36,.28); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+.acc-verify .acc-link { align-self: auto; }
+.acc-verified { margin-left: auto; font-size: 15px; align-self: center; }
 .acc-err { color: var(--danger); font-size: 12.5px; }
 .acc-err:empty { display: none; }
 .sync-badge { font-size: 15px; cursor: default; }
@@ -1121,10 +1129,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 
 /* ---------- phones: bottom nav, no sidebar, single column ---------- */
 @media (max-width: 820px) {
-  .app { grid-template-columns: 1fr; }
+  /* 100dvh (not 100vh): dvh tracks the shrinking/growing browser toolbar so the page
+     doesn't overshoot and "bounce back" when scrolling to the bottom of water/food lists. */
+  .app { grid-template-columns: 1fr; height: 100dvh; }
   .sidebar { display: none; }
-  .main { height: 100vh; }
-  .scroll { padding: 6px 14px calc(82px + env(safe-area-inset-bottom, 0px)); }
+  .main { height: 100dvh; min-height: 0; }
+  .scroll { padding: 6px 14px calc(82px + env(safe-area-inset-bottom, 0px)); overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
   .topbar { padding: 16px 16px 8px; }
   .topbar h1 { font-size: 23px; }
   .topbar-right { gap: 10px; }

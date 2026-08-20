@@ -2734,6 +2734,7 @@ function wire() {
   $$('.nav-item').forEach((b) => (b.onclick = () => switchView(b.dataset.view)));
   $$('[data-goto]').forEach((b) => (b.onclick = () => switchView(b.dataset.goto)));
   $('#themeToggle').onclick = openThemePicker;
+  const topAv = $('#topAvatar'); if (topAv) { topAv.onclick = () => switchView('profile'); topAv.title = 'Профиль'; topAv.style.cursor = 'pointer'; }
 
   // mobile bottom nav + "Ещё" sheet
   $$('#mobileNav .mnav-item[data-view]').forEach((b) => (b.onclick = () => switchView(b.dataset.view)));
@@ -2925,6 +2926,20 @@ function applyCloudState(json) {
   } catch (e) { console.warn('applyCloud failed', e); }
   finally { cloudApplying = false; }
 }
+// Profile "identity" fields — these must never be wiped by a blank device on first login.
+const PROFILE_IDENTITY = ['name', 'birthday', 'sex', 'age', 'height', 'weight', 'avatar', 'goal', 'goalRate', 'targetWeight', 'startWeight'];
+// Copy identity fields from `source` into `target` wherever target is empty. Returns true if anything changed.
+function fillEmptyIdentity(target, source) {
+  if (!target || !source) return false;
+  let changed = false;
+  for (const k of PROFILE_IDENTITY) {
+    const tv = target[k], sv = source[k];
+    const tEmpty = tv === '' || tv == null;
+    const sEmpty = sv === '' || sv == null;
+    if (tEmpty && !sEmpty) { target[k] = sv; changed = true; }
+  }
+  return changed;
+}
 async function startSync() {
   if (!FB || !account) return;
   const ref = FB.db.collection('users').doc(account.uid);
@@ -2932,8 +2947,19 @@ async function startSync() {
     const snap = await ref.get();
     if (snap.exists && snap.data() && snap.data().data) {
       const cloud = snap.data();
-      if ((cloud.updatedAt || 0) > localUpdatedAt()) applyCloudState(cloud.data); // cloud is newer
-      else syncPush();                                                            // local is newer → upload
+      let cloudProfile = null;
+      try { cloudProfile = JSON.parse(cloud.data).profile || null; } catch (e) {}
+      if ((cloud.updatedAt || 0) > localUpdatedAt()) {
+        // cloud is newer — pull it, but keep any identity field only THIS device had
+        const localProfBefore = structuredClone(state.profile);
+        applyCloudState(cloud.data);
+        if (fillEmptyIdentity(state.profile, localProfBefore)) { save(); loadProfileForm(); updateTopbar(); }
+      } else {
+        // local is newer — but first fill our own identity holes from the cloud so the
+        // upload carries the UNION (a blank name here must not erase the cloud's name).
+        if (fillEmptyIdentity(state.profile, cloudProfile)) { loadProfileForm(); updateTopbar(); }
+        markUpdated(); syncPush();
+      }
     } else {
       syncPush(); // brand-new account → seed it with local data
     }
@@ -2950,10 +2976,13 @@ function stopSync() { if (syncUnsub) { syncUnsub(); syncUnsub = null; } }
 
 function authRegister(email, password, nickname) {
   return FB.auth.createUserWithEmailAndPassword(email, password).then((cred) =>
-    (nickname ? cred.user.updateProfile({ displayName: nickname }) : Promise.resolve()).then(() => cred.user));
+    (nickname ? cred.user.updateProfile({ displayName: nickname }) : Promise.resolve())
+      .then(() => cred.user.sendEmailVerification().catch(() => {})) // send confirmation email (non-fatal)
+      .then(() => cred.user));
 }
 function authLogin(email, password) { return FB.auth.signInWithEmailAndPassword(email, password).then((c) => c.user); }
 function authLogout() { return FB.auth.signOut(); }
+function authReset(email) { return FB.auth.sendPasswordResetEmail(email); }
 function authErrMsg(e) {
   const c = (e && e.code) || '';
   if (c.includes('email-already-in-use')) return 'Эта почта уже занята — войди';
@@ -2967,7 +2996,7 @@ function authErrMsg(e) {
 function initAuth() {
   if (!FB) return;
   FB.auth.onAuthStateChanged((user) => {
-    if (user) { account = { uid: user.uid, email: user.email, nickname: user.displayName || '' }; window.account = account; startSync(); }
+    if (user) { account = { uid: user.uid, email: user.email, nickname: user.displayName || '', verified: !!user.emailVerified }; window.account = account; startSync(); }
     else { account = null; window.account = null; stopSync(); setSyncBadge(null); }
     renderAccountCard(); updateTopbar();
   });
@@ -2984,15 +3013,28 @@ function renderAccountCard() {
   if (!FB) { box.innerHTML = '<div class="card"><p class="hint" style="margin:0">Облачная синхронизация недоступна (не загрузился Firebase).</p></div>'; return; }
   if (account) {
     const initial = (account.nickname || account.email || '?').trim().slice(0, 1).toUpperCase();
+    const verifyRow = account.verified ? '' :
+      `<div class="acc-verify">✉️ Почта не подтверждена. Проверь ящик и перейди по ссылке.
+        <button class="acc-link" id="accResend">Отправить письмо ещё раз</button></div>`;
     box.innerHTML = `<div class="card acc-card">
       <div class="acc-head">
         <div class="acc-avatar">${escapeHtml(initial)}</div>
         <div class="acc-info"><b>${escapeHtml(account.nickname || 'Аккаунт')}</b><span>${escapeHtml(account.email || '')}</span></div>
+        ${account.verified ? '<span class="acc-verified" title="Почта подтверждена">✅</span>' : ''}
       </div>
+      ${verifyRow}
       <div class="acc-sync">☁️ Синхронизация включена — данные на телефоне и компьютере совпадают</div>
       <button class="btn ghost full" id="accLogout">Выйти</button>
     </div>`;
     $('#accLogout').onclick = () => { authLogout(); toast('Вышел из аккаунта'); };
+    const rs = $('#accResend');
+    if (rs) rs.onclick = () => {
+      const u = FB.auth.currentUser;
+      if (!u) return;
+      rs.disabled = true;
+      u.sendEmailVerification().then(() => toast('Письмо отправлено — проверь почту ✉️', 'ok'))
+        .catch((e) => { rs.disabled = false; toast(authErrMsg(e), 'err'); });
+    };
     return;
   }
   box.innerHTML = `<div class="card acc-card">
@@ -3007,20 +3049,31 @@ function renderAccountCard() {
       <div class="acc-nick-wrap"><input type="text" id="accNick" placeholder="Никнейм" autocomplete="nickname"></div>
       <input type="email" id="accEmail" placeholder="Почта" autocomplete="email">
       <input type="password" id="accPass" placeholder="Пароль (мин. 6 символов)" autocomplete="current-password">
+      <button type="button" class="acc-link acc-forgot" id="accForgot">Забыл пароль?</button>
       <div class="acc-err" id="accErr"></div>
       <button class="btn primary full" id="accSubmit">Войти</button>
     </div>
   </div>`;
   let mode = 'login';
-  const tabs = box.querySelector('.acc-tabs'), nickWrap = box.querySelector('.acc-nick-wrap');
+  const tabs = box.querySelector('.acc-tabs'), nickWrap = box.querySelector('.acc-nick-wrap'), forgot = $('#accForgot');
   const nick = $('#accNick'), submit = $('#accSubmit'), err = $('#accErr');
   $$('.acc-tab').forEach((t) => (t.onclick = () => {
     mode = t.dataset.at; tabs.dataset.mode = mode;
     $$('.acc-tab').forEach((x) => x.classList.toggle('active', x === t));
     nickWrap.classList.toggle('show', mode === 'register');
+    forgot.hidden = mode === 'register';
     submit.textContent = mode === 'register' ? 'Создать аккаунт' : 'Войти'; err.textContent = '';
     if (mode === 'register') setTimeout(() => nick.focus(), 200);
   }));
+  forgot.onclick = async () => {
+    err.textContent = '';
+    const email = $('#accEmail').value.trim();
+    if (!email) { err.textContent = 'Введи почту — пришлём ссылку для сброса'; $('#accEmail').focus(); return; }
+    forgot.disabled = true;
+    try { await authReset(email); toast('Ссылка для сброса пароля отправлена на почту 📧', 'ok'); }
+    catch (e) { err.textContent = authErrMsg(e); }
+    finally { forgot.disabled = false; }
+  };
   submit.onclick = async () => {
     err.textContent = '';
     const email = $('#accEmail').value.trim(), pass = $('#accPass').value, nk = nick.value.trim();
@@ -3028,8 +3081,8 @@ function renderAccountCard() {
     if (mode === 'register' && !nk) { err.textContent = 'Придумай никнейм'; return; }
     submit.disabled = true; const label = submit.textContent; submit.textContent = '…';
     try {
-      if (mode === 'register') await authRegister(email, pass, nk); else await authLogin(email, pass);
-      toast('Готово! Синхронизация включена ☁️', 'ok');
+      if (mode === 'register') { await authRegister(email, pass, nk); toast('Аккаунт создан! Проверь почту — подтверди адрес ✉️', 'ok'); }
+      else { await authLogin(email, pass); toast('Готово! Синхронизация включена ☁️', 'ok'); }
     } catch (e) { err.textContent = authErrMsg(e); submit.disabled = false; submit.textContent = label; }
   };
 }
