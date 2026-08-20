@@ -232,6 +232,14 @@ if (!gotLock) {
     // Check for updates as soon as the page has loaded (renderer holds the banner until the splash ends).
     if (win && win.webContents) win.webContents.once('did-finish-load', () => setTimeout(checkForUpdate, 500));
     else setTimeout(checkForUpdate, 1500);
+    // Keep checking while the app runs: every 20 min, and whenever the window regains focus
+    // (throttled to once / 5 min) — so a release lands without the user clicking "check".
+    setInterval(() => { checkForUpdate(); }, 20 * 60 * 1000);
+    let lastFocusCheck = 0;
+    if (win) win.on('focus', () => {
+      const now = Date.now();
+      if (now - lastFocusCheck > 5 * 60 * 1000) { lastFocusCheck = now; checkForUpdate(); }
+    });
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
       else showWindow();

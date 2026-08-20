@@ -241,6 +241,48 @@ function toast(msg, type = '') {
    NAVIGATION
    ============================================================ */
 const VIEW_TITLES = { dashboard: 'Обзор', water: 'Вода', nutrition: 'Калории', tasks: 'Задачи', habits: 'Привычки', focus: 'Фокус', finance: 'Финансы', calendar: 'Календарь', profile: 'Профиль' };
+
+/* ---------- clean line icons (replace the chrome emoji) ---------- */
+const ICON_PATHS = {
+  home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  droplet: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5S12.5 4.5 12 2c-.5 2.5-2 4.9-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/>',
+  apple: '<path d="M12 20.9c1.5 0 2.7 1.1 4 1.1 3 0 6-8 6-12.2A4.9 4.9 0 0 0 17 5c-2.2 0-4 1.4-5 2-1-.6-2.8-2-5-2a4.9 4.9 0 0 0-5 4.8C2 14 5 22 8 22c1.3 0 2.5-1.1 4-1.1z"/><path d="M10 2c1 .5 2 2 2 5"/>',
+  check: '<path d="M9 11.5l2.5 2.5L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  timer: '<line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="12" y1="14" y2="9"/><circle cx="12" cy="14" r="8"/>',
+  wallet: '<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>',
+  grid: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  palette: '<path d="M12 22a10 10 0 1 1 0-20 8 8 0 0 1 0 16h-2a2 2 0 0 0 0 4z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16.5" cy="10.5" r="1"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+  search: '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  barcode: '<path d="M3 5v14M7 5v14M11 5v14M15 5v14M18 5v14M21 5v14"/>',
+  pencil: '<path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
+  camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+  rotate: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+  skip: '<polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/>',
+  download: '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
+  upload: '<path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/>',
+  trash: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>',
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h11a6 6 0 0 1 0 12h-3"/>',
+};
+function icon(name) {
+  const p = ICON_PATHS[name]; if (!p) return '';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+}
+function paintIcons(root) {
+  (root || document).querySelectorAll('[data-icon]').forEach((el) => {
+    const name = el.dataset.icon;
+    if (el._iconPainted === name) return; el._iconPainted = name;
+    el.innerHTML = icon(name);
+  });
+}
 let currentView = 'dashboard';
 function switchView(v) {
   if (!VIEW_TITLES[v]) return;
@@ -1247,7 +1289,7 @@ function renderPomo() {
   const t = $('#pomoTime'); if (t) t.textContent = fmtMMSS(Math.max(0, pomo.remaining));
   const lbl = $('#pomoLabel'); if (lbl) lbl.textContent = pomo.mode === 'work' ? 'работа' : 'перерыв';
   const mode = $('#pomoMode'); if (mode) mode.textContent = pomo.mode === 'work' ? 'Фокус · работа' : 'Перерыв ☕';
-  const btn = $('#pomoStart'); if (btn) btn.textContent = pomo.running ? '⏸ Пауза' : '▶ Старт';
+  const btn = $('#pomoStart'); if (btn) btn.innerHTML = `<i class="btn-ic">${icon(pomo.running ? 'pause' : 'play')}</i>${pomo.running ? 'Пауза' : 'Старт'}`;
   const card = $('.pomodoro-card'); if (card) card.classList.toggle('run', pomo.running);
   const frac = pomo.total ? (pomo.total - pomo.remaining) / pomo.total : 0;
   drawRing($('#pomoRing'), frac, pomo.mode === 'work' ? '#6366f1' : '#34d399', pomo.mode === 'work' ? '#22d3ee' : '#10b981');
@@ -1559,6 +1601,9 @@ function loadProfileForm() {
   if (DESKTOP && window.desktop) {
     const ur = $('#updateRow'); if (ur) ur.hidden = false;
     const av = $('#appVer'); if (av) av.textContent = window.desktop.appVersion || '1.0.0';
+  } else if (SERVED) {
+    const ur = $('#updateRow'); if (ur) ur.hidden = false;
+    const av = $('#appVer'); if (av && bootVersion) av.textContent = bootVersion;
   }
   renderAccountCard();
   renderCalc();
@@ -2850,14 +2895,47 @@ function wire() {
   }
   if (DESKTOP && window.desktop && $('#checkUpdateBtn')) {
     $('#checkUpdateBtn').onclick = () => { window.desktop.checkUpdate(); toast('Проверяю обновления…'); };
+  } else if (SERVED && $('#checkUpdateBtn')) {
+    $('#checkUpdateBtn').onclick = async () => {
+      toast('Проверяю обновления…');
+      const latest = await fetchRemoteVersion();
+      if (latest && bootVersion && verGt(latest, bootVersion)) showUpdateBanner(latest, true);
+      else toast('У тебя последняя версия ✓', 'ok');
+    };
   }
 }
-/* ---------- desktop auto-update banner ---------- */
-function showUpdateBanner(version) {
+/* ---------- auto-update: version polling (PWA / served) ---------- */
+let bootVersion = null; // remote version.json at the moment the page loaded
+function verGt(a, b) {
+  const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) { const x = pa[i] || 0, y = pb[i] || 0; if (x !== y) return x > y; }
+  return false;
+}
+async function fetchRemoteVersion() {
+  try {
+    const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j && j.version ? String(j.version) : null;
+  } catch (e) { return null; }
+}
+async function startServedUpdateWatch() {
+  bootVersion = await fetchRemoteVersion();
+  const av = $('#appVer'); if (av && bootVersion) av.textContent = bootVersion;
+  const check = async () => {
+    const latest = await fetchRemoteVersion();
+    if (latest && bootVersion && verGt(latest, bootVersion)) showUpdateBanner(latest, true);
+  };
+  setInterval(check, 5 * 60 * 1000); // poll every 5 min
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+  window.addEventListener('focus', check);
+}
+/* ---------- update banner (desktop applies in place, PWA reloads) ---------- */
+function showUpdateBanner(version, served) {
   if (document.getElementById('updateBanner')) return;
   // Let the splash animation finish first, then slide the banner in.
   const splash = document.getElementById('splash');
-  if (splash && !splash.classList.contains('done')) { setTimeout(() => showUpdateBanner(version), 300); return; }
+  if (splash && !splash.classList.contains('done')) { setTimeout(() => showUpdateBanner(version, served), 300); return; }
   const b = document.createElement('div');
   b.id = 'updateBanner'; b.className = 'update-banner';
   b.innerHTML = `<div class="ub-ic">✨</div>
@@ -2868,7 +2946,16 @@ function showUpdateBanner(version) {
   b.querySelector('#ubLater').onclick = close;
   b.querySelector('#ubNow').onclick = () => {
     const btn = b.querySelector('#ubNow'); btn.textContent = 'Обновляю…'; btn.disabled = true;
-    window.desktop.applyUpdate();
+    if (served || !DESKTOP) {
+      // Activate the waiting service worker, then reload to run the fresh (network-first) code.
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then((reg) => {
+          if (reg && reg.waiting) reg.waiting.postMessage({ type: 'skipWaiting' });
+        }).finally(() => setTimeout(() => location.reload(), 350));
+      } else { location.reload(); }
+    } else {
+      window.desktop.applyUpdate();
+    }
   };
 }
 function loadPhoto(file) {
@@ -3176,6 +3263,7 @@ function init() {
   initSplash();
   applyTheme();
   wire();
+  paintIcons(document); // swap chrome emoji for clean line icons
   // Only render the dashboard at startup; other views render lazily on first open
   // (switchView -> renderView). Big win: no building nutrition/finance/calendar/etc up front.
   switchView('dashboard');
@@ -3188,7 +3276,16 @@ function init() {
   initAuth(); // Firebase auth state + cloud sync
   // PWA: register service worker (offline shell + notifications). Only over http(s).
   if (SERVED && 'serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      // A new SW taking over means fresh code is live — reload once so the page runs it.
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return; reloaded = true; location.reload();
+      });
+      // Nudge the SW to look for a new version now and then.
+      setInterval(() => reg.update().catch(() => {}), 15 * 60 * 1000);
+    }).catch(() => {});
+    startServedUpdateWatch();
   }
   // redraw rings on resize (canvas is bitmap)
   window.addEventListener('resize', () => renderView(currentView));
