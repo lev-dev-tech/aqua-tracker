@@ -271,6 +271,7 @@ const ICON_PATHS = {
   trash: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6"/>',
   refresh: '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>',
   undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h11a6 6 0 0 1 0 12h-3"/>',
+  chevron: '<path d="m6 9 6 6 6-6"/>',
 };
 function icon(name) {
   const p = ICON_PATHS[name]; if (!p) return '';
@@ -283,6 +284,58 @@ function paintIcons(root) {
     el.innerHTML = icon(name);
   });
 }
+
+/* ---------- custom styled dropdowns (replace ugly native <select> lists) ---------- */
+let xselOutsideWired = false;
+function enhanceSelects(root) {
+  (root || document).querySelectorAll('select:not([data-noxsel])').forEach((sel) => {
+    if (sel._xselBox) { sel._xselSync(); return; }          // already enhanced → just refresh label
+    const box = document.createElement('div');
+    box.className = 'xsel';
+    sel.parentNode.insertBefore(box, sel);
+    box.appendChild(sel);                                    // native select lives (hidden) inside the wrapper
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'xsel-btn';
+    btn.innerHTML = '<span class="xsel-val"></span><i class="xsel-caret" data-icon="chevron"></i>';
+    const menu = document.createElement('div');
+    menu.className = 'xsel-menu'; menu.setAttribute('role', 'listbox');
+    box.appendChild(btn); box.appendChild(menu);
+    paintIcons(btn);
+    const sync = () => {
+      const o = sel.options[sel.selectedIndex];
+      btn.querySelector('.xsel-val').innerHTML = o ? escapeHtml(o.textContent) : '';
+    };
+    const build = () => {
+      menu.innerHTML = [...sel.options].map((o, i) =>
+        `<button type="button" class="xsel-opt${i === sel.selectedIndex ? ' sel' : ''}" data-i="${i}">${escapeHtml(o.textContent)}</button>`).join('');
+      menu.querySelectorAll('.xsel-opt').forEach((b) => (b.onmousedown = (e) => {
+        e.preventDefault();
+        sel.selectedIndex = Number(b.dataset.i);
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        sync(); close();
+      }));
+    };
+    const open = () => { build(); box.classList.add('open'); positionMenu(); };
+    const close = () => box.classList.remove('open');
+    const positionMenu = () => {
+      // open upward if not enough room below
+      const r = btn.getBoundingClientRect();
+      box.classList.toggle('up', window.innerHeight - r.bottom < Math.min(260, sel.options.length * 40 + 12));
+    };
+    btn.onclick = () => { if (box.classList.contains('open')) close(); else { document.querySelectorAll('.xsel.open').forEach((x) => x.classList.remove('open')); open(); } };
+    sel.addEventListener('change', sync);
+    sel._xselBox = box; sel._xselSync = sync;
+    sync();
+  });
+  if (!xselOutsideWired) {
+    xselOutsideWired = true;
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('.xsel.open').forEach((box) => { if (!box.contains(e.target)) box.classList.remove('open'); });
+    });
+  }
+}
+// Refresh a custom dropdown's label after code changes the native select's value directly.
+function syncSelect(sel) { if (sel && sel._xselSync) sel._xselSync(); }
 let currentView = 'dashboard';
 function switchView(v) {
   if (!VIEW_TITLES[v]) return;
@@ -463,7 +516,7 @@ function renderNutrition() {
   const mb = $('#macroBars');
   if (mb) mb.innerHTML = macroBar('Белки', t.prot, G.macros.prot, 'prot') + macroBar('Жиры', t.fat, G.macros.fat, 'fat') + macroBar('Углеводы', t.carb, G.macros.carb, 'carb');
   // meal selector default
-  const ms = $('#foodMeal'); if (ms && !ms.dataset.touched) ms.value = currentMeal();
+  const ms = $('#foodMeal'); if (ms && !ms.dataset.touched) { ms.value = currentMeal(); syncSelect(ms); }
   renderMeals();
 }
 // One food row inside a meal section.
@@ -506,7 +559,7 @@ function renderMeals() {
   }).join('');
   wrap.querySelectorAll('.fl-del').forEach((b) => (b.onclick = () => delFood(Number(b.dataset.ts))));
   wrap.querySelectorAll('[data-addmeal]').forEach((b) => (b.onclick = () => {
-    const ms = $('#foodMeal'); if (ms) { ms.value = b.dataset.addmeal; ms.dataset.touched = '1'; }
+    const ms = $('#foodMeal'); if (ms) { ms.value = b.dataset.addmeal; ms.dataset.touched = '1'; syncSelect(ms); }
     $$('#foodTabs .tab').forEach((x) => x.classList.toggle('active', x.dataset.ftab === 'search'));
     $$('.ftab').forEach((f) => f.classList.toggle('active', f.dataset.ftab === 'search'));
     const card = $('#addFoodCard'); if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -959,6 +1012,7 @@ function renderFoodItems(box, items, append) {
     };
     box.appendChild(el);
   });
+  enhanceSelects(box); // style the per-row unit dropdowns
 }
 function round1(n) { return Math.round((n || 0) * 10) / 10; }
 // Smoothly count a number element from its current value to `to`.
@@ -1608,6 +1662,7 @@ function loadProfileForm() {
   renderAccountCard();
   renderCalc();
   wireDob(document);
+  enhanceSelects(document); // refresh custom dropdowns after values are set
 }
 // Show target-weight + rate only for weight-change goals.
 function updateGoalFields() {
@@ -2574,7 +2629,7 @@ function wireFinance() {
   $$('#txSeg [data-txtype]').forEach((b) => (b.onclick = () => {
     txType = b.dataset.txtype;
     $$('#txSeg [data-txtype]').forEach((x) => x.className = (x.dataset.txtype === txType ? 'on ' + x.dataset.txtype : x.dataset.txtype));
-    const cat = $('#txCat'); if (cat) cat.style.display = txType === 'expense' ? '' : 'none';
+    setTxCatVisible();
     const a = $('#txAmount'); if (a) a.focus();
   }));
   const ab = $('#finAdjBal'); if (ab) ab.onclick = adjustBalance;
@@ -2590,6 +2645,14 @@ function wireFinance() {
   const wa = $('#finWishAdd'); if (wa) wa.onclick = addWish;
   $$('#finModules [data-wishdel]').forEach((b) => (b.onclick = () => { F().impulse.wishlist = F().impulse.wishlist.filter((w) => w.id !== b.dataset.wishdel); save(); renderFinance(); }));
   bindMoney($('#financeRoot'));
+  enhanceSelects($('#financeRoot') || document);
+  setTxCatVisible();
+}
+// Category picker only applies to expenses — hide its whole custom wrapper otherwise.
+function setTxCatVisible() {
+  const cat = $('#txCat'); if (!cat) return;
+  const box = cat._xselBox || cat;
+  box.style.display = txType === 'expense' ? '' : 'none';
 }
 
 function finBudgetCard() {
@@ -2764,6 +2827,7 @@ function renderView(v) {
   else if (v === 'finance') renderFinance();
   else if (v === 'calendar') renderCalendar();
   else if (v === 'profile') loadProfileForm();
+  enhanceSelects(document); // style any native selects the freshly-rendered view added
   updateTopbar(); updateBadges();
 }
 function renderAll() {
@@ -2831,7 +2895,7 @@ function wire() {
     const grams = (unit === 'g' || unit === 'ml') ? qty : Math.round(qty * unitGrams(unit));
     addFood({ name, kcal: +$('#mKcal').value || 0, prot: +$('#mProt').value || 0, fat: +$('#mFat').value || 0, carb: +$('#mCarb').value || 0, grams, qty: qty || undefined, unit, img: '' });
     ['#mName','#mKcal','#mProt','#mFat','#mCarb'].forEach((s) => ($(s).value = '')); $('#mGrams').value = 100;
-    if ($('#mUnit')) $('#mUnit').value = 'g';
+    if ($('#mUnit')) { $('#mUnit').value = 'g'; syncSelect($('#mUnit')); }
   };
   // photo
   const drop = $('#photoDrop'), input = $('#photoInput');
@@ -3080,11 +3144,43 @@ function authErrMsg(e) {
   if (c.includes('network')) return 'Нет подключения к сети';
   return (e && e.message) || 'Ошибка';
 }
+let verifyPoll = null;
+let verifyWatchWired = false;
+// Pull the freshest emailVerified from Firebase (it's cached on the client, so a verification
+// done in another tab/page won't show until we reload the user).
+function refreshVerified() {
+  const u = FB && FB.auth && FB.auth.currentUser;
+  if (!u || !account || account.verified) return;
+  u.reload().then(() => {
+    if (u.emailVerified) {
+      account.verified = true; window.account = account;
+      if (verifyPoll) { clearInterval(verifyPoll); verifyPoll = null; }
+      renderAccountCard(); updateTopbar();
+      toast('Почта подтверждена ✅', 'ok');
+    }
+  }).catch(() => {});
+}
+function startVerifyWatch() {
+  if (verifyPoll) { clearInterval(verifyPoll); verifyPoll = null; }
+  if (!account || account.verified) return;
+  refreshVerified();                       // check right away
+  verifyPoll = setInterval(refreshVerified, 12000);
+  if (!verifyWatchWired) {                  // also re-check when the user comes back to the app
+    verifyWatchWired = true;
+    window.addEventListener('focus', refreshVerified);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshVerified(); });
+  }
+}
 function initAuth() {
   if (!FB) return;
   FB.auth.onAuthStateChanged((user) => {
-    if (user) { account = { uid: user.uid, email: user.email, nickname: user.displayName || '', verified: !!user.emailVerified }; window.account = account; startSync(); }
-    else { account = null; window.account = null; stopSync(); setSyncBadge(null); }
+    if (user) {
+      account = { uid: user.uid, email: user.email, nickname: user.displayName || '', verified: !!user.emailVerified };
+      window.account = account; startSync(); startVerifyWatch();
+    } else {
+      account = null; window.account = null; stopSync(); setSyncBadge(null);
+      if (verifyPoll) { clearInterval(verifyPoll); verifyPoll = null; }
+    }
     renderAccountCard(); updateTopbar();
   });
 }
@@ -3101,7 +3197,8 @@ function renderAccountCard() {
   if (account) {
     const initial = (account.nickname || account.email || '?').trim().slice(0, 1).toUpperCase();
     const verifyRow = account.verified ? '' :
-      `<div class="acc-verify">✉️ Почта не подтверждена. Проверь ящик и перейди по ссылке.
+      `<div class="acc-verify">✉️ Почта не подтверждена. Перейди по ссылке из письма — статус обновится сам.
+        <span class="acc-verify-spam">Письмо часто попадает в «Спам» — проверь и там.</span>
         <button class="acc-link" id="accResend">Отправить письмо ещё раз</button></div>`;
     box.innerHTML = `<div class="card acc-card">
       <div class="acc-head">
@@ -3119,7 +3216,7 @@ function renderAccountCard() {
       const u = FB.auth.currentUser;
       if (!u) return;
       rs.disabled = true;
-      u.sendEmailVerification().then(() => toast('Письмо отправлено — проверь почту ✉️', 'ok'))
+      u.sendEmailVerification().then(() => toast('Письмо отправлено — проверь почту и папку «Спам» ✉️', 'ok'))
         .catch((e) => { rs.disabled = false; toast(authErrMsg(e), 'err'); });
     };
     return;
@@ -3168,7 +3265,7 @@ function renderAccountCard() {
     if (mode === 'register' && !nk) { err.textContent = 'Придумай никнейм'; return; }
     submit.disabled = true; const label = submit.textContent; submit.textContent = '…';
     try {
-      if (mode === 'register') { await authRegister(email, pass, nk); toast('Аккаунт создан! Проверь почту — подтверди адрес ✉️', 'ok'); }
+      if (mode === 'register') { await authRegister(email, pass, nk); toast('Аккаунт создан! Проверь почту (и «Спам») — подтверди адрес ✉️', 'ok'); }
       else { await authLogin(email, pass); toast('Готово! Синхронизация включена ☁️', 'ok'); }
     } catch (e) { err.textContent = authErrMsg(e); submit.disabled = false; submit.textContent = label; }
   };
@@ -3254,9 +3351,18 @@ function maybeShowInstallHint() {
 function initSplash() {
   const s = document.getElementById('splash');
   if (!s) return;
-  const kill = () => s.classList.add('done');
-  s.addEventListener('click', kill);
-  setTimeout(kill, 1350); // cleanup after the (shortened) animation
+  const t0 = performance.now();
+  const MIN_MS = 2100;   // let the full drop→ripple→word animation play, even on a fast load
+  let done = false;
+  const leave = (fast) => {
+    if (done) return; done = true;
+    s.classList.add('leaving');
+    setTimeout(() => s.classList.add('done'), fast ? 380 : 560);
+  };
+  // Called at the end of init(): reveal once the app is ready AND the min time has passed.
+  window.__revealApp = () => { const wait = Math.max(0, MIN_MS - (performance.now() - t0)); setTimeout(() => leave(false), wait); };
+  s.addEventListener('click', () => leave(true));
+  setTimeout(() => leave(false), 6000); // hard safety cap so it can never hang
 }
 
 function init() {
@@ -3264,6 +3370,7 @@ function init() {
   applyTheme();
   wire();
   paintIcons(document); // swap chrome emoji for clean line icons
+  enhanceSelects(document); // styled dropdowns instead of native <select>s
   // Only render the dashboard at startup; other views render lazily on first open
   // (switchView -> renderView). Big win: no building nutrition/finance/calendar/etc up front.
   switchView('dashboard');
@@ -3289,5 +3396,7 @@ function init() {
   }
   // redraw rings on resize (canvas is bitmap)
   window.addEventListener('resize', () => renderView(currentView));
+  // App is built and first view rendered — let the splash finish its animation, then reveal.
+  if (window.__revealApp) window.__revealApp();
 }
 document.addEventListener('DOMContentLoaded', init);

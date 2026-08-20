@@ -148,53 +148,77 @@ body::after { width: 38vw; height: 38vw; right: -6vw; top: 2vw;
 .splash {
   position: fixed; inset: 0; z-index: 1000; background: var(--bg);
   display: grid; place-items: center; overflow: hidden;
-  animation: splashOut .45s .95s var(--ease) forwards;
+  opacity: 1; transition: opacity .55s var(--ease);
 }
-.splash::before { /* soft theme glow center — follows the active theme */
-  content: ""; position: absolute; width: 60vmin; height: 60vmin; border-radius: 50%;
-  background: radial-gradient(circle, var(--blob1), transparent 65%); opacity: .5;
-  animation: splashGlow 2s ease-out both;
+.splash.leaving { opacity: 0; }         /* JS adds this once the app is ready + min time passed */
+.splash.done { display: none; }
+.splash::before { /* soft theme glow center — follows the active theme, gently breathing */
+  content: ""; position: absolute; width: 62vmin; height: 62vmin; border-radius: 50%;
+  background: radial-gradient(circle, var(--blob1), transparent 65%);
+  animation: splashGlow 1.1s ease-out both, splashBreathe 3.2s 1.1s ease-in-out infinite;
 }
-.splash-stage { position: relative; width: 240px; height: 340px; display: grid; place-items: center; }
+.splash-stage { position: relative; width: 260px; height: 380px; display: grid; place-items: center; }
+/* expanding halo the drop lands into */
+.splash-ring {
+  position: absolute; top: 138px; left: 50%; width: 90px; height: 90px; margin-left: -45px;
+  border: 2px solid var(--drop); border-radius: 50%; opacity: 0;
+  transform: scale(.2); animation: splashRing 1.5s .62s var(--ease-out) forwards;
+}
 .splash .drop {
-  position: absolute; top: 0; width: 42px; height: 52px; fill: var(--drop);
-  filter: drop-shadow(0 10px 18px color-mix(in srgb, var(--accent) 55%, transparent));
-  transform: translateY(-46vh); will-change: transform, opacity;
-  animation: dropFall .55s cubic-bezier(.55,.06,.68,.19) forwards;
+  position: absolute; top: 74px; width: 46px; height: 58px; fill: var(--drop);
+  filter: drop-shadow(0 12px 22px color-mix(in srgb, var(--accent) 60%, transparent));
+  transform: translateY(-52vh); will-change: transform, opacity;
+  animation: dropFall .78s cubic-bezier(.5,.02,.62,.16) forwards;
 }
 .splash .ripple, .splash .puddle { will-change: transform, opacity; }
-.splash-impact { position: absolute; bottom: 96px; width: 10px; height: 10px; }
+.splash-impact { position: absolute; top: 178px; width: 10px; height: 10px; }
 .splash-impact .ripple {
-  position: absolute; left: 50%; top: 50%; width: 40px; height: 14px;
+  position: absolute; left: 50%; top: 50%; width: 44px; height: 16px;
   border: 2px solid var(--drop); border-radius: 50%;
   transform: translate(-50%,-50%) scale(0); opacity: 0;
 }
-.splash-impact .ripple  { animation: ripple .8s .5s var(--ease-out) forwards; }
-.splash-impact .ripple.r2 { animation: ripple .9s .58s var(--ease-out) forwards; }
-.splash-impact .ripple.r3 { animation: ripple 1s .66s var(--ease-out) forwards; }
+.splash-impact .ripple  { animation: ripple 1.0s .70s var(--ease-out) forwards; }
+.splash-impact .ripple.r2 { animation: ripple 1.15s .80s var(--ease-out) forwards; }
+.splash-impact .ripple.r3 { animation: ripple 1.3s .90s var(--ease-out) forwards; }
 .splash-impact .puddle {
-  position: absolute; left: 50%; top: 50%; width: 120px; height: 34px;
+  position: absolute; left: 50%; top: 50%; width: 130px; height: 36px;
   background: radial-gradient(ellipse at center, var(--drop), transparent 72%);
   border-radius: 50%; transform: translate(-50%,-50%) scale(0); opacity: 0;
-  animation: puddle .5s .5s var(--ease-out) forwards;
+  animation: puddle .7s .70s var(--ease-out) forwards;
 }
 .splash-word {
-  position: absolute; bottom: 40px; font-family: var(--display); font-weight: 800;
-  font-size: 30px; letter-spacing: -.02em; color: var(--text); opacity: 0;
-  animation: wordIn .5s .55s var(--ease-out) forwards;
+  position: absolute; bottom: 92px; font-family: var(--display); font-weight: 800;
+  font-size: 34px; letter-spacing: -.02em; color: var(--text); opacity: 0;
+  animation: wordIn .6s .82s var(--ease-out) forwards;
+}
+.splash-sub {
+  position: absolute; bottom: 66px; font-size: 13px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); opacity: 0;
+  animation: fadeUp .55s 1.15s var(--ease-out) forwards;
+}
+.splash-bar {
+  position: absolute; bottom: 34px; width: 128px; height: 4px; border-radius: 4px;
+  background: var(--panel-hi); overflow: hidden; opacity: 0;
+  animation: fadeUp .5s 1.35s var(--ease-out) forwards;
+}
+.splash-bar span {
+  position: absolute; left: 0; top: 0; height: 100%; width: 42%; border-radius: 4px;
+  background: var(--grad); animation: splashLoad 1.25s 1.4s var(--ease) infinite;
 }
 @keyframes dropFall {
-  0% { transform: translateY(-46vh) scaleY(1.15) scaleX(.85); }
-  70% { transform: translateY(0) scaleY(1.1) scaleX(.9); }
-  85% { transform: translateY(0) scaleY(.5) scaleX(1.4); opacity: 1; }
-  100% { transform: translateY(6px) scaleY(.15) scaleX(1.7); opacity: 0; }
+  0% { transform: translateY(-52vh) scaleY(1.2) scaleX(.82); }
+  72% { transform: translateY(0) scaleY(1.1) scaleX(.9); opacity: 1; }
+  86% { transform: translateY(2px) scaleY(.42) scaleX(1.5); opacity: 1; }
+  100% { transform: translateY(8px) scaleY(.12) scaleX(1.8); opacity: 0; }
 }
-@keyframes ripple { 0%{transform:translate(-50%,-50%) scale(.2);opacity:0} 25%{opacity:.6} 100%{transform:translate(-50%,-50%) scale(4.5);opacity:0} }
+@keyframes ripple { 0%{transform:translate(-50%,-50%) scale(.2);opacity:0} 25%{opacity:.6} 100%{transform:translate(-50%,-50%) scale(4.6);opacity:0} }
 @keyframes puddle { 0%{transform:translate(-50%,-50%) scale(0);opacity:0} 60%{opacity:.9} 100%{transform:translate(-50%,-50%) scale(1);opacity:0} }
-@keyframes wordIn { 0%{opacity:0;transform:translateY(10px);letter-spacing:.3em} 100%{opacity:1;transform:none;letter-spacing:-.02em} }
-@keyframes splashGlow { 0%{opacity:0;transform:scale(.4)} 60%{opacity:1} 100%{opacity:.6;transform:scale(1.3)} }
-@keyframes splashOut { to { opacity: 0; visibility: hidden; } }
-.splash.done { display: none; }
+@keyframes splashRing { 0%{transform:scale(.2);opacity:0} 30%{opacity:.55} 100%{transform:scale(2.4);opacity:0} }
+@keyframes wordIn { 0%{opacity:0;transform:translateY(12px);letter-spacing:.34em} 100%{opacity:1;transform:none;letter-spacing:-.02em} }
+@keyframes fadeUp { 0%{opacity:0;transform:translateY(8px)} 100%{opacity:1;transform:none} }
+@keyframes splashLoad { 0%{left:-45%} 100%{left:105%} }
+@keyframes splashGlow { 0%{opacity:0;transform:scale(.4)} 100%{opacity:.55;transform:scale(1)} }
+@keyframes splashBreathe { 0%,100%{opacity:.42;transform:scale(1)} 50%{opacity:.62;transform:scale(1.08)} }
 
 .app { display: grid; grid-template-columns: 250px 1fr; height: 100vh; position: relative; z-index: 1;
   animation: appIn .5s .35s var(--ease-out) forwards; }
@@ -576,6 +600,41 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .cat-ic { font-size: 17px; width: 22px; text-align: center; flex: 0 0 auto; }
 .cat-empty { padding: 10px; font-size: 12.5px; color: var(--text-dim); line-height: 1.4; }
 .cat-empty b { color: var(--text); }
+
+/* ---------- custom dropdown (replaces native <select> lists everywhere) ---------- */
+.xsel { position: relative; }
+.xsel > select { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; border: 0; opacity: 0; overflow: hidden; clip: rect(0 0 0 0); pointer-events: none; }
+.xsel-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;
+  background: var(--panel-hi); border: 1px solid var(--stroke); border-radius: 11px;
+  padding: 11px 11px 11px 13px; font-family: var(--font); font-size: 14px; font-weight: 500; color: var(--text);
+  cursor: pointer; text-align: left; transition: border-color .2s, box-shadow .2s;
+}
+.xsel-btn:hover { border-color: var(--stroke-hi); }
+.xsel.open .xsel-btn { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,.18); }
+.xsel-val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xsel-caret { display: inline-flex; color: var(--muted); flex-shrink: 0; transition: transform .24s var(--ease-out), color .2s; }
+.xsel-caret svg { width: 16px; height: 16px; display: block; }
+.xsel.open .xsel-caret { transform: rotate(180deg); color: var(--accent); }
+.xsel-menu {
+  position: absolute; left: 0; right: auto; min-width: 100%; width: max-content; max-width: min(280px, 80vw);
+  top: calc(100% + 6px); z-index: 60;
+  background: var(--panel-solid); border: 1px solid var(--stroke-hi); border-radius: 13px;
+  padding: 6px; box-shadow: 0 22px 48px -18px rgba(0,0,0,.72); display: grid; gap: 2px;
+  max-height: 264px; overflow-y: auto;
+  opacity: 0; transform: translateY(-6px) scale(.98); transform-origin: top; pointer-events: none;
+  transition: opacity .17s var(--ease-out), transform .2s var(--ease-out);
+}
+.xsel.up .xsel-menu { top: auto; bottom: calc(100% + 6px); transform-origin: bottom; transform: translateY(6px) scale(.98); }
+.xsel.open .xsel-menu { opacity: 1; transform: none; pointer-events: auto; }
+.xsel-opt {
+  display: block; width: 100%; text-align: left; background: transparent; border: 0;
+  color: var(--text); font-family: var(--font); font-size: 13.5px; font-weight: 600;
+  padding: 9px 10px; border-radius: 9px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: background .14s;
+}
+.xsel-opt:hover { background: var(--panel-hi); }
+.xsel-opt.sel { background: var(--grad-soft); }
 /* folders (categories) */
 .task-folders { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .folder { border: 1px solid var(--stroke); background: var(--panel-hi); color: var(--text-dim); padding: 7px 14px; border-radius: 12px; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; transition: .2s; display: inline-flex; align-items: center; gap: 6px; }
@@ -1064,6 +1123,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .acc-forgot[hidden] { display: none; }
 .acc-verify { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; line-height: 1.4; color: var(--text-dim); background: rgba(251,191,36,.10); border: 1px solid rgba(251,191,36,.28); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
 .acc-verify .acc-link { align-self: auto; }
+.acc-verify-spam { flex-basis: 100%; font-size: 11.5px; color: var(--muted); }
 .acc-verified { margin-left: auto; font-size: 15px; align-self: center; }
 .acc-err { color: var(--danger); font-size: 12.5px; }
 .acc-err:empty { display: none; }
