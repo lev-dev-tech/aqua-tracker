@@ -317,6 +317,8 @@ const ICON_PATHS = {
   chair: '<path d="M6 4v9h12V4"/><path d="M5 13h14v3H5z"/><path d="M6 16v4"/><path d="M18 16v4"/>',
   walk: '<circle cx="13" cy="4" r="1.8"/><path d="M11 21l1.5-5L10 13l1-5 3 2 2 3"/><path d="M10 8 7 11"/>',
   user2: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  male: '<circle cx="10" cy="14" r="6"/><path d="M14.5 9.5 20 4"/><path d="M15 4h5v5"/>',
+  female: '<circle cx="12" cy="8" r="5.5"/><path d="M12 13.5V22"/><path d="M8.5 18.5h7"/>',
   piggy: '<path d="M4 12a6 6 0 0 1 6-6h4l3 2h2a1 1 0 0 1 1 1v2l1 1-1 1v1a5 5 0 0 1-2 3v2h-3v-2h-4v2H8v-2a6 6 0 0 1-4-5z"/><circle cx="9" cy="11" r=".8"/><path d="M13 7V5"/>',
   shield: '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>',
   landmark: '<path d="M3 21h18"/><path d="M4 10h16"/><path d="M6 10v11M10 10v11M14 10v11M18 10v11"/><path d="M12 3 3 8h18z"/>',
@@ -1919,8 +1921,8 @@ function openOnboarding(first) {
         <p class="onb-sub">Пара вопросов — и приложение само посчитает норму калорий, воды и БЖУ под твою цель.</p>
         <label class="mlabel">Пол</label>
         <div class="onb-cards two">
-          ${card(d.sex === 'male', ic('user2'), 'Мужской', '', 'male')}
-          ${card(d.sex === 'female', ic('user'), 'Женский', '', 'female')}
+          ${card(d.sex === 'male', ic('male'), 'Мужской', '', 'male')}
+          ${card(d.sex === 'female', ic('female'), 'Женский', '', 'female')}
         </div>
         <label class="mlabel">Дата рождения</label>
         <div class="dob-row" data-dob>

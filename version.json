@@ -1,4 +1,4 @@
 {
-  "version": "1.0.11",
+  "version": "1.0.12",
   "files": ["index.html", "app.js", "styles.css", "theme-init.js", "sw.js", "manifest.json", "main.js", "preload.js", "firebase-init.js", "vendor/firebase-app-compat.js", "vendor/firebase-auth-compat.js", "vendor/firebase-firestore-compat.js"]
 }
