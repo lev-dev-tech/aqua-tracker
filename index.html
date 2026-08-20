@@ -123,7 +123,7 @@
 
             <div class="card streaks-card">
               <div class="card-head"><h3>Серия дней с водой</h3></div>
-              <div class="streak-big"><span id="waterStreak">0</span><small>дней подряд 🔥</small></div>
+              <div class="streak-big"><span id="waterStreak">0</span><small>дней подряд <span class="i" data-icon="flame"></span></small></div>
               <div class="streak-goal" id="streakGoal"></div>
               <div class="weekbar" id="weekBar"></div>
             </div>
@@ -206,10 +206,10 @@
               <div class="meal-select-row">
                 <span>Приём пищи</span>
                 <select id="foodMeal">
-                  <option value="breakfast">🌅 Завтрак</option>
-                  <option value="lunch">🍽️ Обед</option>
-                  <option value="dinner">🌙 Ужин</option>
-                  <option value="snack">🍎 Перекус</option>
+                  <option value="breakfast">Завтрак</option>
+                  <option value="lunch">Обед</option>
+                  <option value="dinner">Ужин</option>
+                  <option value="snack">Перекус</option>
                 </select>
               </div>
               <div class="tabs" id="foodTabs">
@@ -284,7 +284,7 @@
               <input type="text" id="taskInput" placeholder="Новая задача... (Enter — добавить)" />
               <div class="cat-field" id="catField">
                 <input type="text" id="taskCat" placeholder="Категория" autocomplete="off" />
-                <span class="cat-caret" id="catCaret">▾</span>
+                <span class="cat-caret i" id="catCaret" data-icon="chevron"></span>
                 <div class="cat-menu" id="catMenu" role="listbox"></div>
               </div>
               <select id="taskPriority" title="Приоритет">
@@ -407,10 +407,10 @@
                 </label>
                 <label>Цель
                   <select id="pGoal">
-                    <option value="lose">🔥 Похудение</option>
-                    <option value="maintain" selected>⚖️ Поддержание</option>
-                    <option value="gain">📈 Набор массы</option>
-                    <option value="muscle">💪 Набор мышц</option>
+                    <option value="lose">Похудение</option>
+                    <option value="maintain" selected>Поддержание</option>
+                    <option value="gain">Набор массы</option>
+                    <option value="muscle">Набор мышц</option>
                   </select>
                 </label>
                 <label id="pRateWrap" hidden>Темп

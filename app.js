@@ -134,10 +134,10 @@ function day(k = curKey()) {
    DERIVED: goals (Mifflin-St Jeor + realistic goal deltas)
    ============================================================ */
 const GOAL_META = {
-  lose:     { label: 'Похудение',    icon: '🔥', hint: 'дефицит калорий' },
-  maintain: { label: 'Поддержание',  icon: '⚖️', hint: 'вес стабильный' },
-  gain:     { label: 'Набор массы',  icon: '📈', hint: 'профицит калорий' },
-  muscle:   { label: 'Набор мышц',   icon: '💪', hint: 'мягкий профицит + белок' },
+  lose:     { label: 'Похудение',    icon: 'flame',      hint: 'дефицит калорий' },
+  maintain: { label: 'Поддержание',  icon: 'scale',      hint: 'вес стабильный' },
+  gain:     { label: 'Набор массы',  icon: 'trendingUp', hint: 'профицит калорий' },
+  muscle:   { label: 'Набор мышц',   icon: 'dumbbell',   hint: 'мягкий профицит + белок' },
 };
 const KCAL_PER_KG = 7700; // energy in 1 kg of body mass
 
@@ -272,7 +272,80 @@ const ICON_PATHS = {
   refresh: '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>',
   undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h11a6 6 0 0 1 0 12h-3"/>',
   chevron: '<path d="m6 9 6 6 6-6"/>',
+  // meals
+  sunrise: '<path d="M12 2v6"/><path d="m5.6 9.6 1.4 1.4"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m17 11 1.4-1.4"/><path d="M22 22H2"/><path d="M8 18a4 4 0 0 1 8 0"/>',
+  utensils: '<path d="M3 2v7a3 3 0 0 0 6 0V2"/><path d="M6 9v13"/><path d="M18 2c-2 0-3 2-3 5s1 5 3 5"/><path d="M18 2v20"/>',
+  moon2: '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>',
+  cookie: '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1"/><circle cx="14" cy="14" r="1"/><circle cx="15" cy="8" r="1"/>',
+  // goals
+  scale: '<path d="M12 3v18"/><path d="M5 7h14"/><path d="m5 7-3 6a3 3 0 0 0 6 0z"/><path d="m19 7-3 6a3 3 0 0 0 6 0z"/><path d="M7 21h10"/>',
+  trendingUp: '<path d="M3 17l6-6 4 4 7-7"/><path d="M17 8h4v4"/>',
+  dumbbell: '<path d="M14.4 14.4 9.6 9.6"/><path d="M18.7 20.7 20.7 18.7"/><path d="m3.3 5.3 2-2"/><path d="m6.5 17.5-3 3-1-1 3-3"/><path d="M17.5 6.5l3-3-1-1-3 3"/><path d="M2 12l2 2"/><path d="M20 10l2 2"/><path d="M9.6 14.4 5.3 18.7"/><path d="M18.7 9.6 14.4 5.3"/>',
+  // water cups
+  glass: '<path d="M5 3h14l-1.2 15a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M6 8h12"/>',
+  // habits
+  run: '<circle cx="13" cy="4" r="2"/><path d="m5 20 3-3 1.5 1.5L11 16l-2-4 3-2 2 3h3"/><path d="M9 12 7 9l4-2"/>',
+  book: '<path d="M4 4a2 2 0 0 1 2-2h13v18H6a2 2 0 0 0-2 2z"/><path d="M4 4v16"/>',
+  lotus: '<path d="M12 20c-4 0-7-2.5-7-6 2 0 3.5.7 4.5 1.7"/><path d="M12 20c4 0 7-2.5 7-6-2 0-3.5.7-4.5 1.7"/><path d="M12 20V9"/><path d="M12 9c-2-2-2.5-4.5-1.5-6.5C12 4 12.5 6 12.5 8"/><path d="M12 9c2-2 2.5-4.5 1.5-6.5"/>',
+  bed: '<path d="M2 20v-8h18a2 2 0 0 1 2 2v6"/><path d="M2 12V7"/><path d="M6 12V9a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M2 17h20"/>',
+  ban: '<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/>',
+  salad: '<path d="M7 21h10"/><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9z"/><path d="M11.4 12a4 4 0 1 0-5-5"/><path d="M11 12a5 5 0 0 1 10 0"/>',
+  target2: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/>',
+  music: '<circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path d="M9 18V5l12-2v13"/>',
+  pen: '<path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/>',
+  brain: '<path d="M9 3a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V15a3 3 0 0 0 4 2.8"/><path d="M15 3a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V15a3 3 0 0 1-4 2.8"/><path d="M9 3v15M15 3v15"/>',
+  swim: '<circle cx="15" cy="6" r="2"/><path d="m5 13 3-2 3 2 3-2 3 2"/><path d="M5 18l3-2 3 2 3-2 3 2"/><path d="M8 9l3-2 3 3"/>',
+  bike: '<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17 10 7h3l3 6"/><path d="M9 7h4"/>',
+  soccer: '<circle cx="12" cy="12" r="9"/><path d="m12 8 3 2-1 3.5h-4L9 10z"/>',
+  boxing: '<path d="M8 4h5a4 4 0 0 1 4 4v3a3 3 0 0 1-3 3H9l-3-3V7a3 3 0 0 1 2-3z"/><path d="M6 14v3a2 2 0 0 0 2 2h6"/>',
+  // stats / misc
+  hourglass: '<path d="M5 3h14"/><path d="M5 21h14"/><path d="M7 3v3a5 5 0 0 0 5 5 5 5 0 0 0 5-5V3"/><path d="M7 21v-3a5 5 0 0 1 5-5 5 5 0 0 1 5 5v3"/>',
+  coffee: '<path d="M4 8h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 9h2a2 2 0 0 1 0 5h-2"/><path d="M7 3v2M11 3v2"/>',
+  sparkles: '<path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/>',
+  trophy: '<path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4v1a3 3 0 0 0 3 3"/><path d="M17 6h3v1a3 3 0 0 1-3 3"/><path d="M9 15h6"/><path d="M10 15v3h4v-3"/><path d="M8 21h8"/>',
+  folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  folders: '<path d="M8 4h3l2 2h6a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M4 8v9a2 2 0 0 0 2 2h11"/>',
+  briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/>',
+  heart: '<path d="M12 20s-7-4.3-9.3-8.5C1.2 8.8 2.4 5.5 5.5 5.5c1.9 0 3.1 1 2.5 1.5C9 8 10.5 6.5 12 6.5s3-1.5 4-.5c-.6-.5.6-1.5 2.5-1.5 3.1 0 4.3 3.3 2.8 6C19 15.7 12 20 12 20z"/>',
+  cart: '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.4 12.4a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 7H6"/>',
+  rocket: '<path d="M5 15c-1 1-1.5 4-1.5 4s3-.5 4-1.5c.6-.6.6-1.9 0-2.5s-1.9-.6-2.5 0z"/><path d="M9 12c3-6 7-8 11-8 0 4-2 8-8 11z"/><path d="M14 8a1.5 1.5 0 1 0 2 2"/><path d="M9 12l-2-1 1.5-3M12 15l1 2 3-1.5"/>',
+  bulb: '<path d="M9 18h6"/><path d="M10 21h4"/><path d="M8.5 14a5 5 0 1 1 7 0c-.7.7-1 1.3-1 2.2H9.5c0-.9-.3-1.5-1-2.2z"/>',
+  chartDown: '<path d="M3 7l6 6 4-4 7 7"/><path d="M17 16h4v-4"/>',
+  speech: '<path d="M21 12a8 8 0 0 1-11.3 7.3L3 21l1.7-6.7A8 8 0 1 1 21 12z"/>',
+  clearGoal: '<path d="M9 14 4 9l5-5"/><path d="M4 9h11a6 6 0 0 1 0 12h-3"/>',
+  chair: '<path d="M6 4v9h12V4"/><path d="M5 13h14v3H5z"/><path d="M6 16v4"/><path d="M18 16v4"/>',
+  walk: '<circle cx="13" cy="4" r="1.8"/><path d="M11 21l1.5-5L10 13l1-5 3 2 2 3"/><path d="M10 8 7 11"/>',
+  user2: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  piggy: '<path d="M4 12a6 6 0 0 1 6-6h4l3 2h2a1 1 0 0 1 1 1v2l1 1-1 1v1a5 5 0 0 1-2 3v2h-3v-2h-4v2H8v-2a6 6 0 0 1-4-5z"/><circle cx="9" cy="11" r=".8"/><path d="M13 7V5"/>',
+  shield: '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>',
+  landmark: '<path d="M3 21h18"/><path d="M4 10h16"/><path d="M6 10v11M10 10v11M14 10v11M18 10v11"/><path d="M12 3 3 8h18z"/>',
+  banknote: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M6 9v6M18 9v6"/>',
+  zap: '<path d="M13 2 4 14h7l-2 8 9-12h-7z"/>',
+  minus: '<path d="M5 12h14"/>',
+  arrowDown: '<path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>',
+  arrowUp: '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
+  x: '<path d="M6 6 18 18"/><path d="M18 6 6 18"/>',
+  plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  alert: '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+  barChart: '<path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="7"/><rect x="12" y="7" width="3" height="11"/><rect x="17" y="4" width="3" height="14"/>',
+  clipboard: '<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M9 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3"/>',
+  thumbUp: '<path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z"/><path d="M7 11l4-8a2 2 0 0 1 3 2l-1 5h4a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 18 20H7"/>',
+  smile: '<circle cx="12" cy="12" r="9"/><path d="M8 14a4 4 0 0 0 8 0"/><path d="M9 9h.01M15 9h.01"/>',
+  plane: '<path d="M21 15.5 3 21l4-6-4-6 18 5.5a1 1 0 0 1 0 1z"/>',
+  cake: '<path d="M4 21h16v-7H4z"/><path d="M4 14a3 3 0 0 1 6 0 3 3 0 0 1 6 0 2.5 2.5 0 0 1 4 0"/><path d="M12 7V4"/><circle cx="12" cy="3" r="1"/>',
+  gift: '<path d="M4 8h16v3H4z"/><path d="M5 11v9h14v-9"/><path d="M12 8v12"/><path d="M12 8S9.5 8 8.5 6a2 2 0 0 1 3.5-1 2 2 0 0 1 3.5 1C14.5 8 12 8 12 8z"/>',
+  cloud: '<path d="M7 18h10a4 4 0 0 0 .5-8 6 6 0 0 0-11.5 2A3.5 3.5 0 0 0 7 18z"/>',
+  phone: '<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
+  share: '<path d="M12 3v13"/><path d="m8 7 4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
+  party: '<path d="M4 20 9 8l7 7z"/><path d="M14 6a3 3 0 0 0 3 3"/><path d="M20 4v.01M16 3v.01M20 9v.01"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
 };
+// Inline icon for use inside text/HTML strings (scales with font-size).
+// Unknown names (e.g. an emoji stored on an old habit) fall back to a neutral icon so no emoji leaks through.
+function ic(name) { return '<span class="i">' + (icon(name) || icon('target2')) + '</span>'; }
+// Placeholder shown in a food thumbnail when there is no photo (replaces per-food emoji).
+const FOOD_PH = '<span class="fr-ph">' + icon('utensils') + '</span>';
 function icon(name) {
   const p = ICON_PATHS[name]; if (!p) return '';
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
@@ -373,7 +446,7 @@ function addWater(ml) {
   const g = computeGoals().waterGoal;
   const t = waterTotal();
   pulseBottles();
-  if (t >= g && t - ml < g) toast('🎉 Дневная норма воды выполнена!', 'ok');
+  if (t >= g && t - ml < g) toast('Дневная норма воды выполнена!', 'ok');
   else toast(`+${ml} мл · всего ${t} мл`, 'ok');
   renderWater(); renderDashboard(); updateTopbar();
 }
@@ -392,13 +465,13 @@ function pulseBottles() {
   });
 }
 
-const QUICK = [{ ml: 200, em: '🥃' }, { ml: 300, em: '🥤' }, { ml: 500, em: '🍶' }, { ml: 750, em: '💧' }];
+const QUICK = [{ ml: 200, em: 'glass' }, { ml: 300, em: 'glass' }, { ml: 500, em: 'glass' }, { ml: 750, em: 'droplet' }];
 function renderQuickAdd(container) {
   container.innerHTML = '';
   QUICK.forEach((q) => {
     const b = document.createElement('button');
     b.className = 'qa-btn';
-    b.innerHTML = `<span class="qa-em">${q.em}</span> +${q.ml}`;
+    b.innerHTML = `<span class="qa-em">${ic(q.em)}</span> +${q.ml}`;
     b.onclick = () => addWater(q.ml);
     container.appendChild(b);
   });
@@ -424,7 +497,7 @@ function renderWater() {
     $('#waterLogCount').textContent = `${items.length} приёмов · ${t} мл`;
     if (!items.length) log.innerHTML = '<p class="empty">Сегодня ещё не пил воду. Нажми быструю кнопку слева.</p>';
     else log.innerHTML = items.slice().reverse().map((w) => {
-      const tm = new Date(w.ts); return `<div class="wl-item">💧 <b>${w.ml}</b> мл <span class="wl-time">${pad(tm.getHours())}:${pad(tm.getMinutes())}</span></div>`;
+      const tm = new Date(w.ts); return `<div class="wl-item">${ic('droplet')} <b>${w.ml}</b> мл <span class="wl-time">${pad(tm.getHours())}:${pad(tm.getMinutes())}</span></div>`;
     }).join('');
   }
   // reminder controls sync
@@ -462,10 +535,10 @@ function drawRing(canvas, pct, colorA, colorB) {
    ============================================================ */
 // Meals + how the daily calorie norm is auto-split across them.
 const MEALS = [
-  { id: 'breakfast', name: 'Завтрак', icon: '🌅', pct: 0.25 },
-  { id: 'lunch',     name: 'Обед',    icon: '🍽️', pct: 0.35 },
-  { id: 'dinner',    name: 'Ужин',    icon: '🌙', pct: 0.30 },
-  { id: 'snack',     name: 'Перекус', icon: '🍎', pct: 0.10 },
+  { id: 'breakfast', name: 'Завтрак', icon: 'sunrise',  pct: 0.25 },
+  { id: 'lunch',     name: 'Обед',    icon: 'utensils', pct: 0.35 },
+  { id: 'dinner',    name: 'Ужин',    icon: 'moon2',    pct: 0.30 },
+  { id: 'snack',     name: 'Перекус', icon: 'apple',    pct: 0.10 },
 ];
 const MEAL_BY_ID = Object.fromEntries(MEALS.map((m) => [m.id, m]));
 function mealByHour(h) { return h < 11 ? 'breakfast' : h < 16 ? 'lunch' : h < 21 ? 'dinner' : 'snack'; }
@@ -524,13 +597,13 @@ function foodRowHTML(f) {
   const portion = (f.unit && f.unit !== 'g' && f.unit !== 'ml')
     ? `${round1(f.qty || 0)} ${unitName(f.unit)} · ${f.grams} г`
     : (f.grams ? `${f.grams} ${unitName(f.unit || 'g')}` : '');
-  const thumb = f.img ? `<img class="fr-thumb" src="${f.img}" alt="">` : `<div class="fr-thumb" style="display:grid;place-items:center">${f.icon || '🍽️'}</div>`;
+  const thumb = f.img ? `<img class="fr-thumb" src="${f.img}" alt="">` : `<div class="fr-thumb" style="display:grid;place-items:center">${FOOD_PH}</div>`;
   return `<div class="fl-item">
     ${thumb}
     <div class="fr-body"><div class="fr-name">${escapeHtml(f.name)}</div>
       <div class="fr-meta">${portion ? portion + ' · ' : ''}Б ${Math.round(f.prot)} · Ж ${Math.round(f.fat)} · У ${Math.round(f.carb)}</div></div>
     <div class="fr-kcal">${Math.round(f.kcal)}</div>
-    <button class="fl-del" data-ts="${f.ts}" title="Удалить">✕</button>
+    <button class="fl-del" data-ts="${f.ts}" title="Удалить">${ic('x')}</button>
   </div>`;
 }
 function renderMeals() {
@@ -548,7 +621,7 @@ function renderMeals() {
       : '<div class="meal-empty">Пусто</div>';
     return `<div class="meal-card" data-meal="${m.id}">
       <div class="meal-head">
-        <div class="meal-title"><span class="meal-ic">${m.icon}</span><b>${m.name}</b></div>
+        <div class="meal-title"><span class="meal-ic">${ic(m.icon)}</span><b>${m.name}</b></div>
         <div class="meal-kcal ${over ? 'over' : ''}">${Math.round(t.kcal)} <small>/ ${target} ккал</small></div>
       </div>
       <div class="meal-bar"><div class="meal-bar-fill ${over ? 'over' : ''}" style="width:${pct}%"></div></div>
@@ -984,7 +1057,7 @@ function renderFoodItems(box, items, append) {
     el.className = 'fr-item';
     const thumb = it.img
       ? `<img class="fr-thumb" src="${it.img}" alt="" loading="lazy" referrerpolicy="no-referrer">`
-      : `<div class="fr-thumb" style="display:grid;place-items:center">${it.icon || '🍽️'}</div>`;
+      : `<div class="fr-thumb" style="display:grid;place-items:center">${FOOD_PH}</div>`;
     el.innerHTML = `
       ${thumb}
       <div class="fr-body"><div class="fr-name">${escapeHtml(it.name)}</div>
@@ -995,7 +1068,7 @@ function renderFoodItems(box, items, append) {
       </div>
       <button class="btn primary sm fr-add">+</button>`;
     const im = el.querySelector('img.fr-thumb');
-    if (im) im.onerror = () => { const d = document.createElement('div'); d.className = 'fr-thumb'; d.textContent = it.icon || '🍽️'; d.style.cssText = 'display:grid;place-items:center'; im.replaceWith(d); };
+    if (im) im.onerror = () => { const d = document.createElement('div'); d.className = 'fr-thumb'; d.innerHTML = FOOD_PH; d.style.cssText = 'display:grid;place-items:center'; im.replaceWith(d); };
     const qtyEl = el.querySelector('.fr-qty'), unitEl = el.querySelector('.fr-unit');
     // Switching from grams to a count unit resets the "100" default to a sensible "1".
     unitEl.onchange = () => {
@@ -1069,7 +1142,7 @@ async function analyzePhoto() {
     box.innerHTML = '';
     const el = document.createElement('div');
     el.className = 'fr-item';
-    el.innerHTML = `<div class="fr-thumb" style="display:grid;place-items:center">🤖</div>
+    el.innerHTML = `<div class="fr-thumb" style="display:grid;place-items:center">${ic('sparkles')}</div>
       <div class="fr-body"><div class="fr-name">${escapeHtml(f.name || 'Блюдо')}</div>
       <div class="fr-meta">~${f.grams || '?'} г · Б ${Math.round(f.prot||0)} Ж ${Math.round(f.fat||0)} У ${Math.round(f.carb||0)}</div></div>
       <div class="fr-kcal">${Math.round(f.kcal||0)}</div>
@@ -1089,8 +1162,8 @@ let currentFolder = 'all';
 function catOf(t) { return (t.category && t.category.trim()) ? t.category.trim() : 'Общие'; }
 // Styled category picker: type your own OR pick a template (replaces the plain white <datalist>).
 const CAT_TEMPLATES = [
-  ['💼', 'Работа'], ['🙂', 'Личное'], ['🏠', 'Дом'], ['📚', 'Учёба'],
-  ['❤️', 'Здоровье'], ['🛒', 'Покупки'], ['🚀', 'Проект'], ['💡', 'Идеи'],
+  ['briefcase', 'Работа'], ['user', 'Личное'], ['home', 'Дом'], ['book', 'Учёба'],
+  ['heart', 'Здоровье'], ['cart', 'Покупки'], ['rocket', 'Проект'], ['bulb', 'Идеи'],
 ];
 function initCatPicker() {
   const field = $('#catField'), input = $('#taskCat'), menu = $('#catMenu'), caret = $('#catCaret');
@@ -1101,8 +1174,8 @@ function initCatPicker() {
     const f = cur();
     const items = CAT_TEMPLATES.filter(([, n]) => !f || n.toLowerCase().includes(f));
     if (items.length) {
-      menu.innerHTML = items.map(([ic, n]) =>
-        `<button type="button" class="cat-item${input.value.trim() === n ? ' sel' : ''}" data-val="${n}"><span class="cat-ic">${ic}</span>${n}</button>`).join('');
+      menu.innerHTML = items.map(([icn, n]) =>
+        `<button type="button" class="cat-item${input.value.trim() === n ? ' sel' : ''}" data-val="${n}"><span class="cat-ic">${ic(icn)}</span>${n}</button>`).join('');
     } else {
       menu.innerHTML = `<div class="cat-empty">Своя категория: <b>${escapeHtml(input.value.trim())}</b></div>`;
     }
@@ -1128,7 +1201,7 @@ function toggleTask(id) {
   const t = state.tasks.find((x) => x.id === id); if (!t) return;
   t.done = !t.done; t.doneAt = t.done ? todayKey() : '';
   save(); renderTasks(); renderDashboard(); updateBadges();
-  if (t.done) toast('Задача выполнена 💪', 'ok');
+  if (t.done) toast('Задача выполнена', 'ok');
 }
 function delTask(id) { state.tasks = state.tasks.filter((x) => x.id !== id); save(); renderTasks(); renderDashboard(); updateBadges(); }
 function clearDone() { const n = state.tasks.filter((x) => x.done).length; state.tasks = state.tasks.filter((x) => !x.done); save(); renderTasks(); renderDashboard(); updateBadges(); if (n) toast(`Удалено готовых: ${n}`); }
@@ -1155,7 +1228,7 @@ function renderTaskFolders() {
   const cats = [...counts.keys()].sort((a, b) => a === 'Общие' ? 1 : b === 'Общие' ? -1 : a.localeCompare(b));
   const chip = (folder, label, n) =>
     `<button class="folder ${currentFolder === folder ? 'active' : ''}" data-folder="${escapeHtml(folder)}">${label}${n ? ` <span class="fcount">${n}</span>` : ''}</button>`;
-  box.innerHTML = chip('all', '🗂 Все', 0) + cats.map((c) => chip(c, '📁 ' + escapeHtml(c), counts.get(c))).join('');
+  box.innerHTML = chip('all', ic('folders') + ' Все', 0) + cats.map((c) => chip(c, ic('folder') + ' ' + escapeHtml(c), counts.get(c))).join('');
   $$('#taskFolders .folder').forEach((b) => (b.onclick = () => { currentFolder = b.dataset.folder; renderTasks(); }));
 }
 function taskItemHTML(t) {
@@ -1167,20 +1240,20 @@ function taskItemHTML(t) {
     <span class="task-pri ${t.priority}"></span>
     <span class="task-text">${escapeHtml(t.text)}</span>
     ${dueTxt ? `<span class="task-due ${overdue ? 'overdue' : ''}">${dueTxt}</span>` : ''}
-    <button class="task-del" data-act="del">✕</button>
+    <button class="task-del" data-act="del">${ic('x')}</button>
   </div>`;
 }
 function renderTasks() {
   renderTaskFolders();
   const list = $('#taskList'); if (!list) return;
   const items = filteredTasks();
-  if (!items.length) { list.innerHTML = '<p class="empty">Задач нет. Добавь первую сверху ✍️</p>'; return; }
+  if (!items.length) { list.innerHTML = `<p class="empty">Задач нет. Добавь первую сверху ${ic('pen')}</p>`; return; }
   if (currentFolder === 'all') {
     // grouped "folder" view (общий экран)
     const groups = new Map();
     items.forEach((t) => { const c = catOf(t); if (!groups.has(c)) groups.set(c, []); groups.get(c).push(t); });
     list.innerHTML = [...groups.entries()].map(([cat, arr]) =>
-      `<div class="task-group"><div class="task-group-head">📁 ${escapeHtml(cat)} <span class="tg-count">${arr.length}</span></div>${arr.map(taskItemHTML).join('')}</div>`
+      `<div class="task-group"><div class="task-group-head">${ic('folder')} ${escapeHtml(cat)} <span class="tg-count">${arr.length}</span></div>${arr.map(taskItemHTML).join('')}</div>`
     ).join('');
   } else {
     list.innerHTML = items.map(taskItemHTML).join('');
@@ -1204,7 +1277,7 @@ function fmtDue(d) {
 /* ============================================================
    HABITS
    ============================================================ */
-const HABIT_ICONS = ['🏃','📚','🧘','💤','🚭','🥗','💪','🎯','🎸','🖊️','☀️','🧠','🦷','🚶'];
+const HABIT_ICONS = ['run','book','lotus','bed','ban','salad','dumbbell','target2','music','pen','sun','brain','droplet','walk'];
 const HABIT_COLORS = ['#6366f1','#22d3ee','#34d399','#fb7185','#fbbf24','#a78bfa','#f472b6'];
 
 function weekDates() {
@@ -1230,7 +1303,7 @@ function toggleHabitDay(id, k) {
   if (h.log[k]) delete h.log[k]; else h.log[k] = true;
   save(); renderHabits(); renderDashboard();
 }
-const HABIT_EMOJIS = ['🏃','🚶','🧘','💪','🏋️','🚴','🏊','⚽','🥊','🎯','📚','✍️','🧠','💡','🎨','🎸','🎹','🎧','🎮','💻','📖','💤','☀️','🌙','🚭','🍎','🥗','🥦','🍳','💧','☕','🍵','🦷','🚿','🧹','💊','🧴','💰','📅','✅','🔥','⭐','❤️','🌱','📵','🙏','🏆','🎵','🧺','🐕'];
+const HABIT_EMOJIS = ['run','walk','lotus','dumbbell','bike','swim','soccer','boxing','target2','book','pen','brain','bulb','music','salad','apple','droplet','coffee','bed','ban','sun','moon2','heart','sparkles','flame','check','wallet','calendar','folder','trophy'];
 
 async function addHabit() {
   const chosen = await openHabitModal();
@@ -1248,7 +1321,7 @@ function openHabitModal() {
       <label class="mlabel">Название</label>
       <input id="hmName" placeholder="Напр. Зарядка" autocomplete="off">
       <label class="mlabel">Иконка <span id="hmPicked" class="hm-picked">${icon}</span></label>
-      <div class="emoji-grid" id="hmGrid">${HABIT_EMOJIS.map((e) => `<button class="emoji-btn ${e === icon ? 'sel' : ''}" data-e="${e}">${e}</button>`).join('')}</div>
+      <div class="emoji-grid" id="hmGrid">${HABIT_EMOJIS.map((e) => `<button class="emoji-btn ${e === icon ? 'sel' : ''}" data-e="${e}">${ic(e)}</button>`).join('')}</div>
       <div class="modal-actions"><button class="btn ghost" data-cancel>Отмена</button><button class="btn primary" data-ok>Создать</button></div>
     </div>`;
     document.body.appendChild(ov);
@@ -1280,14 +1353,14 @@ function renderHabits() {
       return `<div class="hw-cell ${on ? 'on' : ''} ${isToday ? 'today' : ''}" data-id="${h.id}" data-k="${k}" title="${k}">${RU_DOW[(d.getDay()+6)%7]}</div>`;
     }).join('');
     return `<div class="habit-card">
-      <button class="habit-del" data-del="${h.id}">✕</button>
+      <button class="habit-del" data-del="${h.id}">${ic('x')}</button>
       <div class="habit-top">
-        <div class="habit-icon" style="background:${h.color}33">${h.icon}</div>
+        <div class="habit-icon" style="background:${h.color}33">${ic(h.icon)}</div>
         <div class="habit-name">${escapeHtml(h.name)}</div>
       </div>
-      <div class="habit-streak">🔥 ${streak} дн.</div>
+      <div class="habit-streak">${ic('flame')} ${streak} дн.</div>
       <div class="habit-week">${cells}</div>
-      <button class="btn ${doneToday ? 'ghost' : 'primary'} habit-check" data-toggle="${h.id}">${doneToday ? '✓ Сделано сегодня' : 'Отметить сегодня'}</button>
+      <button class="btn ${doneToday ? 'ghost' : 'primary'} habit-check" data-toggle="${h.id}">${doneToday ? ic('check') + ' Сделано сегодня' : 'Отметить сегодня'}</button>
     </div>`;
   }).join('');
   $$('#habitsList .hw-cell').forEach((c) => (c.onclick = () => toggleHabitDay(c.dataset.id, c.dataset.k)));
@@ -1327,11 +1400,11 @@ function pomoComplete() {
     state.focus.sessions[k] = (state.focus.sessions[k] || 0) + 1;
     state.focus.minutes[k] = (state.focus.minutes[k] || 0) + Math.round(pomo.total / 60);
     save();
-    notifyNow('🍅 Помодоро завершён', 'Отличная работа! Время на перерыв.');
-    toast('🍅 Сессия засчитана!', 'ok');
+    notifyNow('Помодоро завершён', 'Отличная работа! Время на перерыв.');
+    toast('Сессия засчитана!', 'ok');
     pomoResetTo('break');
   } else {
-    notifyNow('☕ Перерыв окончен', 'Возвращайся к работе.');
+    notifyNow('Перерыв окончен', 'Возвращайся к работе.');
     pomoResetTo('work');
   }
   renderFocus(); renderDashboard();
@@ -1342,7 +1415,7 @@ function fmtMMSS(s) { const m = Math.floor(s / 60), ss = s % 60; return `${pad(m
 function renderPomo() {
   const t = $('#pomoTime'); if (t) t.textContent = fmtMMSS(Math.max(0, pomo.remaining));
   const lbl = $('#pomoLabel'); if (lbl) lbl.textContent = pomo.mode === 'work' ? 'работа' : 'перерыв';
-  const mode = $('#pomoMode'); if (mode) mode.textContent = pomo.mode === 'work' ? 'Фокус · работа' : 'Перерыв ☕';
+  const mode = $('#pomoMode'); if (mode) mode.textContent = pomo.mode === 'work' ? 'Фокус · работа' : 'Перерыв';
   const btn = $('#pomoStart'); if (btn) btn.innerHTML = `<i class="btn-ic">${icon(pomo.running ? 'pause' : 'play')}</i>${pomo.running ? 'Пауза' : 'Старт'}`;
   const card = $('.pomodoro-card'); if (card) card.classList.toggle('run', pomo.running);
   const frac = pomo.total ? (pomo.total - pomo.remaining) / pomo.total : 0;
@@ -1357,7 +1430,7 @@ function renderFocus() {
   if (pomo.total === 0) pomoResetTo('work'); else renderPomo();
   const k = todayKey();
   const ft = $('#focusToday');
-  if (ft) ft.innerHTML = statTile('🍅', state.focus.sessions[k] || 0, 'сессий сегодня', true) + statTile('⏳', state.focus.minutes[k] || 0, 'минут фокуса', false);
+  if (ft) ft.innerHTML = statTile(ic('timer'), state.focus.sessions[k] || 0, 'сессий сегодня', true) + statTile(ic('hourglass'), state.focus.minutes[k] || 0, 'минут фокуса', false);
   const na = $('#notesArea'); if (na && document.activeElement !== na) na.value = state.notes || '';
 }
 function renderWeekStats() {
@@ -1375,11 +1448,11 @@ function renderWeekStats() {
   const tasksWeek = state.tasks.filter((t) => t.done && t.doneAt && t.doneAt >= keyOf(weekStart)).length;
   const habitsToday = state.habits.filter((h) => h.log[tk]).length;
   box.innerHTML =
-    statTile('✅', tasksWeek, 'задач за неделю', true) +
-    statTile('💧', waterDays + '/7', 'дней с нормой воды', false) +
-    statTile('🍅', focusSess, 'фокус-сессий', false) +
-    statTile('⏳', focusMin, 'минут фокуса', false) +
-    statTile('🔥', habitsToday + '/' + (state.habits.length || 0), 'привычек сегодня', false);
+    statTile(ic('check'), tasksWeek, 'задач за неделю', true) +
+    statTile(ic('droplet'), waterDays + '/7', 'дней с нормой воды', false) +
+    statTile(ic('timer'), focusSess, 'фокус-сессий', false) +
+    statTile(ic('hourglass'), focusMin, 'минут фокуса', false) +
+    statTile(ic('flame'), habitsToday + '/' + (state.habits.length || 0), 'привычек сегодня', false);
 }
 
 /* ============================================================
@@ -1438,10 +1511,10 @@ function showDay(k) {
     }).join('');
   }
   $('#dayDetailBody').innerHTML = `
-    <div class="dd-row"><span>💧 Вода</span><b>${water} / ${G.waterGoal} мл</b></div>
-    <div class="dd-row"><span>🍎 Калории</span><b>${Math.round(tot.kcal)} ккал · Б${Math.round(tot.prot)} Ж${Math.round(tot.fat)} У${Math.round(tot.carb)}</b></div>
-    <div class="dd-row"><span>🔥 Привычек отмечено</span><b>${habitsDone.length}${habitsDone.length ? ' · ' + habitsDone.map((h)=>h.icon).join(' ') : ''}</b></div>
-    <div class="dd-tasks-head"><span>✅ Задачи</span><b>${doneCount}/${dayTasks.length} выполнено</b></div>
+    <div class="dd-row"><span>${ic('droplet')} Вода</span><b>${water} / ${G.waterGoal} мл</b></div>
+    <div class="dd-row"><span>${ic('apple')} Калории</span><b>${Math.round(tot.kcal)} ккал · Б${Math.round(tot.prot)} Ж${Math.round(tot.fat)} У${Math.round(tot.carb)}</b></div>
+    <div class="dd-row"><span>${ic('flame')} Привычек отмечено</span><b>${habitsDone.length}${habitsDone.length ? ' · ' + habitsDone.map((h)=>ic(h.icon)).join(' ') : ''}</b></div>
+    <div class="dd-tasks-head"><span>${ic('check')} Задачи</span><b>${doneCount}/${dayTasks.length} выполнено</b></div>
     <div class="dd-tasks">${tasksBlock}</div>`;
   $('#dayDetailCard').hidden = false;
   $('#dayDetailCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1481,7 +1554,7 @@ function renderDashboard() {
   const dt = $('#dashTasks');
   if (dt) {
     const items = state.tasks.filter((x) => !x.done).slice(0, 5);
-    if (!items.length) dt.innerHTML = '<li class="empty" style="padding:10px">Все задачи выполнены 🎉</li>';
+    if (!items.length) dt.innerHTML = `<li class="empty" style="padding:10px">Все задачи выполнены ${ic('trophy')}</li>`;
     else dt.innerHTML = items.map((x) => `<li><button class="task-check" data-id="${x.id}"></button><span class="task-pri ${x.priority}"></span>${escapeHtml(x.text)}</li>`).join('');
     $$('#dashTasks .task-check').forEach((b) => (b.onclick = () => toggleTask(b.dataset.id)));
   }
@@ -1500,10 +1573,10 @@ function renderDashboard() {
           return `<div class="dh-cell ${on ? 'on' : ''} ${sel ? 'sel' : ''}" data-h="${h.id}" data-k="${k}" title="${k}">${RU_DOW[(d.getDay()+6)%7]}</div>`;
         }).join('');
         return `<div class="dh-tile">
-          <div class="dh-top"><div class="dh-icon" style="background:${h.color}33">${h.icon}</div><div class="dh-name">${escapeHtml(h.name)}</div></div>
-          <div><span class="dh-streak">${streak}</span><small>дн. подряд 🔥</small></div>
+          <div class="dh-top"><div class="dh-icon" style="background:${h.color}33">${ic(h.icon)}</div><div class="dh-name">${escapeHtml(h.name)}</div></div>
+          <div><span class="dh-streak">${streak}</span><small>дн. подряд ${ic('flame')}</small></div>
           <div class="dh-week">${cells}</div>
-          <button class="dh-toggle ${doneSel ? 'on' : 'off'}" data-htoggle="${h.id}">${doneSel ? '✓ Отмечено' : 'Отметить день'}</button>
+          <button class="dh-toggle ${doneSel ? 'on' : 'off'}" data-htoggle="${h.id}">${doneSel ? ic('check') + ' Отмечено' : 'Отметить день'}</button>
         </div>`;
       }).join('');
       $$('#dashHabits .dh-cell').forEach((c) => (c.onclick = () => toggleHabitDay(c.dataset.h, c.dataset.k)));
@@ -1571,14 +1644,14 @@ function renderWeightCard() {
     goalBlock = `<div class="wc-progress"><div class="wc-progress-fill" style="width:${proj.progress}%"></div></div>
       <div class="wc-proj">осталось <b>${round1(proj.remaining)} кг</b><br><span class="wc-date">${proj.date.getDate()} ${RU_MONTHS_GEN[proj.date.getMonth()]} ${proj.date.getFullYear()}</span></div>`;
   } else if (proj && proj.done) {
-    goalBlock = `<div class="wc-proj" style="color:var(--ok)">🎉 Цель<br><b>${round1(proj.target)} кг</b> достигнута</div>`;
+    goalBlock = `<div class="wc-proj" style="color:var(--ok)">${ic('trophy')} Цель<br><b>${round1(proj.target)} кг</b> достигнута</div>`;
   } else {
-    goalBlock = `<div class="wc-proj">${gm.icon} ${gm.label}<br><span class="wc-date">${gm.hint}</span></div>`;
+    goalBlock = `<div class="wc-proj">${ic(gm.icon)} ${gm.label}<br><span class="wc-date">${gm.hint}</span></div>`;
   }
   box.innerHTML = `
     <div class="wc-now">
       <div class="wc-cur"><span class="wc-val">${round1(cur)}</span><small>кг${p.targetWeight ? ` · цель ${round1(p.targetWeight)}` : ''}</small></div>
-      ${entries.length > 1 ? `<div class="wc-trend ${delta14 < 0 ? 'down' : delta14 > 0 ? 'up' : ''}">${delta14 > 0 ? '▲' : delta14 < 0 ? '▼' : '▬'} ${Math.abs(delta14)} кг<small>за ${entries.length} записей</small></div>` : ''}
+      ${entries.length > 1 ? `<div class="wc-trend ${delta14 < 0 ? 'down' : delta14 > 0 ? 'up' : ''}">${delta14 > 0 ? ic('arrowUp') : delta14 < 0 ? ic('arrowDown') : ic('minus')} ${Math.abs(delta14)} кг<small>за ${entries.length} записей</small></div>` : ''}
     </div>
     <div class="wc-chart">${weightSparkline(entries)}</div>
     <div class="wc-goal">${goalBlock}</div>`;
@@ -1590,7 +1663,7 @@ function openWeightModal() {
     if (!w || w <= 0) return toast('Некорректный вес', 'err');
     logWeight(w);
     renderDashboard(); renderCalc(); updateTopbar();
-    toast('Вес записан 📉', 'ok');
+    toast('Вес записан', 'ok');
   });
 }
 
@@ -1602,7 +1675,7 @@ function renderStreakGoal() {
   const done = streak >= goal;
   const left = Math.max(0, goal - streak);
   el.innerHTML = `
-    <div class="sg-head">🎯 Цель: <b>${goal}</b> дней подряд — ${done ? '<span class="sg-done">выполнено! 🎉</span>' : `осталось <b>${left}</b>`}</div>
+    <div class="sg-head">${ic('target2')} Цель: <b>${goal}</b> дней подряд — ${done ? '<span class="sg-done">выполнено! ' + ic('party') + '</span>' : `осталось <b>${left}</b>`}</div>
     <div class="sg-bar"><div class="sg-fill" style="width:${pct}%"></div></div>
     <div class="sg-chips">${[7, 14, 30, 50, 100].map((g) => `<button class="sg-chip ${g === goal ? 'active' : ''}" data-goal="${g}">${g}</button>`).join('')}</div>`;
   $$('#streakGoal .sg-chip').forEach((b) => (b.onclick = () => { state.settings.streakGoal = Number(b.dataset.goal); save(); renderStreakGoal(); toast(`Цель: ${b.dataset.goal} дней подряд`, 'ok'); }));
@@ -1711,18 +1784,18 @@ function renderCalc() {
   if (proj && !proj.done) {
     projRow = `<div class="calc-item highlight"><span class="ci-label">${proj.target} кг — примерно к</span><span class="ci-val" style="font-size:15px">${proj.date.getDate()} ${RU_MONTHS_GEN[proj.date.getMonth()]} ${proj.date.getFullYear()}</span></div>`;
   } else if (proj && proj.done) {
-    projRow = `<div class="calc-item highlight"><span class="ci-label">Цель по весу</span><span class="ci-val" style="font-size:15px;color:var(--ok)">достигнута 🎉</span></div>`;
+    projRow = `<div class="calc-item highlight"><span class="ci-label">Цель по весу</span><span class="ci-val" style="font-size:15px;color:var(--ok)">достигнута ${ic('party')}</span></div>`;
   }
   box.innerHTML = `
     <div class="calc-item"><span class="ci-label">Базовый обмен (BMR)</span><span class="ci-val">${G.bmr || '—'}<small> ккал</small></span></div>
     <div class="calc-item"><span class="ci-label">Расход на активность</span><span class="ci-val">${G.activityBurn ? '+' + G.activityBurn : '—'}<small> ккал</small></span></div>
     <div class="calc-item"><span class="ci-label">Всего за день (TDEE)</span><span class="ci-val">${G.tdee || '—'}<small> ккал</small></span></div>
-    <div class="calc-item"><span class="ci-label">${gm.icon} ${gm.label} · ${G.delta >= 0 ? '+' : ''}${G.delta} ккал</span><span class="ci-val" style="font-size:14px;color:var(--muted)">${gm.hint}</span></div>
+    <div class="calc-item"><span class="ci-label">${ic(gm.icon)} ${gm.label} · ${G.delta >= 0 ? '+' : ''}${G.delta} ккал</span><span class="ci-val" style="font-size:14px;color:var(--muted)">${gm.hint}</span></div>
     <div class="calc-item accent-item"><span class="ci-label">Цель калорий${G.custom ? ' · своя' : ''}</span><span class="ci-val">${G.kcalGoal}<small> ккал</small></span></div>
     <div class="calc-item"><span class="ci-label">Цель воды</span><span class="ci-val">${G.waterGoal}<small> мл</small></span></div>
     <div class="calc-item"><span class="ci-label">Белки / Жиры / Углеводы</span><span class="ci-val" style="font-size:15px">${G.macros.prot} / ${G.macros.fat} / ${G.macros.carb}<small> г</small></span></div>
     ${projRow}
-    ${G.custom ? '<button class="btn ghost sm" id="clearCustomGoal" style="margin-top:6px">↩ Вернуть расчётную цель</button>' : ''}`;
+    ${G.custom ? `<button class="btn ghost sm" id="clearCustomGoal" style="margin-top:6px">${ic('undo')} Вернуть расчётную цель</button>` : ''}`;
   const cc = $('#clearCustomGoal');
   if (cc) cc.onclick = () => { state.goals.kcal = null; if ($('#pKcalGoal')) $('#pKcalGoal').value = ''; save(); renderCalc(); renderAll(); toast('Цель калорий снова расчётная', 'ok'); };
 }
@@ -1763,7 +1836,7 @@ function openAvatarPicker() {
     <div class="avatar-current">
       <div class="avatar-current-face" id="avCurFace"></div>
       <div class="avatar-current-side">
-        <button class="btn ghost sm" id="avUploadBtn">📷 Загрузить своё фото</button>
+        <button class="btn ghost sm" id="avUploadBtn">${ic('camera')} Загрузить своё фото</button>
         <input type="file" id="avFile" accept="image/*" hidden>
         <span class="hint" style="margin:0">PNG/JPG — обрежется в квадрат</span>
       </div>
@@ -1793,11 +1866,11 @@ function openAvatarPicker() {
    ONBOARDING QUIZ (goal setup — Yazio-style)
    ============================================================ */
 const ACT_OPTS = [
-  ['1.2', '🪑', 'Сидячий', 'офис, мало движения'],
-  ['1.375', '🚶', 'Лёгкая', '1–3 трен/нед'],
-  ['1.55', '🏃', 'Умеренная', '3–5 трен/нед'],
-  ['1.725', '🏋️', 'Высокая', '6–7 трен/нед'],
-  ['1.9', '🔥', 'Очень высокая', '2× в день / физ. работа'],
+  ['1.2', 'chair', 'Сидячий', 'офис, мало движения'],
+  ['1.375', 'walk', 'Лёгкая', '1–3 трен/нед'],
+  ['1.55', 'run', 'Умеренная', '3–5 трен/нед'],
+  ['1.725', 'dumbbell', 'Высокая', '6–7 трен/нед'],
+  ['1.9', 'flame', 'Очень высокая', '2× в день / физ. работа'],
 ];
 const RATE_OPTS = [['0.25', 'Мягко', '0.25 кг/нед'], ['0.5', 'Обычно', '0.5 кг/нед'], ['0.75', 'Быстро', '0.75 кг/нед'], ['1', 'Агрессивно', '1.0 кг/нед']];
 
@@ -1841,13 +1914,13 @@ function openOnboarding(first) {
 
   function body(cur) {
     if (cur === 'welcome') {
-      return `<div class="onb-hero">🎯</div>
+      return `<div class="onb-hero">${ic('target2')}</div>
         <h3 class="onb-title">${first ? 'Настроим Aqua под тебя' : 'Настройка цели'}</h3>
         <p class="onb-sub">Пара вопросов — и приложение само посчитает норму калорий, воды и БЖУ под твою цель.</p>
         <label class="mlabel">Пол</label>
         <div class="onb-cards two">
-          ${card(d.sex === 'male', '👨', 'Мужской', '', 'male')}
-          ${card(d.sex === 'female', '👩', 'Женский', '', 'female')}
+          ${card(d.sex === 'male', ic('user2'), 'Мужской', '', 'male')}
+          ${card(d.sex === 'female', ic('user'), 'Женский', '', 'female')}
         </div>
         <label class="mlabel">Дата рождения</label>
         <div class="dob-row" data-dob>
@@ -1869,12 +1942,12 @@ function openOnboarding(first) {
     if (cur === 'activity') {
       return `<h3 class="onb-title">Насколько ты активен?</h3>
         <p class="onb-sub">Честно — завышенная активность раздувает норму калорий.</p>
-        <div class="onb-cards">${ACT_OPTS.map((o) => card(String(d.activity) === o[0], o[1], o[2], o[3], o[0])).join('')}</div>`;
+        <div class="onb-cards">${ACT_OPTS.map((o) => card(String(d.activity) === o[0], ic(o[1]), o[2], o[3], o[0])).join('')}</div>`;
     }
     if (cur === 'goal') {
       return `<h3 class="onb-title">Какая цель?</h3>
         <p class="onb-sub">Под неё подстроятся калории и баланс БЖУ.</p>
-        <div class="onb-cards">${['lose', 'maintain', 'gain', 'muscle'].map((g) => card(d.goal === g, GOAL_META[g].icon, GOAL_META[g].label, GOAL_META[g].hint, g)).join('')}</div>`;
+        <div class="onb-cards">${['lose', 'maintain', 'gain', 'muscle'].map((g) => card(d.goal === g, ic(GOAL_META[g].icon), GOAL_META[g].label, GOAL_META[g].hint, g)).join('')}</div>`;
     }
     if (cur === 'target') {
       const dirTxt = d.goal === 'lose' ? 'сбросить' : 'набрать';
@@ -1883,7 +1956,7 @@ function openOnboarding(first) {
         <label class="mlabel">Целевой вес, кг</label>
         <input type="number" id="onbTarget" min="30" max="250" step="0.1" placeholder="кг" value="${d.targetWeight || ''}">
         <label class="mlabel">Темп</label>
-        <div class="onb-cards">${RATE_OPTS.map((o) => card(String(d.goalRate) === o[0], '⚡', o[1], o[2], o[0])).join('')}</div>`;
+        <div class="onb-cards">${RATE_OPTS.map((o) => card(String(d.goalRate) === o[0], ic('zap'), o[1], o[2], o[0])).join('')}</div>`;
     }
     if (cur === 'summary') {
       const g = previewGoals(d);
@@ -1892,9 +1965,9 @@ function openOnboarding(first) {
       if ((d.goal === 'lose' || d.goal === 'gain') && d.targetWeight && d.weight) {
         const weeks = Math.abs(d.targetWeight - d.weight) / Math.max(0.1, d.goalRate);
         const date = new Date(); date.setDate(date.getDate() + Math.round(weeks * 7));
-        projTxt = `<div class="onb-proj">📅 ${d.targetWeight} кг примерно к <b>${date.getDate()} ${RU_MONTHS_GEN[date.getMonth()]} ${date.getFullYear()}</b></div>`;
+        projTxt = `<div class="onb-proj">${ic('calendar')} ${d.targetWeight} кг примерно к <b>${date.getDate()} ${RU_MONTHS_GEN[date.getMonth()]} ${date.getFullYear()}</b></div>`;
       }
-      return `<div class="onb-hero">${GOAL_META[d.goal].icon}</div>
+      return `<div class="onb-hero">${ic(GOAL_META[d.goal].icon)}</div>
         <h3 class="onb-title">Твой план готов</h3>
         <div class="onb-summary">
           <div class="onb-big"><span class="onb-big-val">${g.kcal}</span><span class="onb-big-lbl">ккал / день</span></div>
@@ -1921,7 +1994,7 @@ function openOnboarding(first) {
       <div class="onb-body">${body(cur)}</div>
       <div class="onb-actions">
         ${step > 0 ? '<button class="btn ghost" data-back>Назад</button>' : (first ? '<button class="btn ghost" data-skip>Позже</button>' : '<button class="btn ghost" data-skip>Отмена</button>')}
-        <button class="btn primary" data-next>${last ? '🚀 Погнали' : 'Далее'}</button>
+        <button class="btn primary" data-next>${last ? ic('rocket') + ' Погнали' : 'Далее'}</button>
       </div>
     </div>`;
     // card selects
@@ -1980,7 +2053,7 @@ function openOnboarding(first) {
     save();
     loadProfileForm(); renderAll();
     ov.remove();
-    toast('Цель настроена 🎯', 'ok');
+    toast('Цель настроена', 'ok');
   }
 
   render();
@@ -2024,13 +2097,19 @@ const THEMES = [
 ];
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', state.settings.theme);
-  const t = $('#themeToggle');
-  const th = THEMES.find((x) => x.id === state.settings.theme) || THEMES[0];
-  if (t) t.querySelector('.ic').textContent = th.icon;
+  // theme toggle keeps its SVG icon — nothing to swap (theme = CSS variables only)
 }
+let themeSwitching = false;
 function setTheme(id) {
-  const applyNow = () => { state.settings.theme = id; save(); applyTheme(); renderView(currentView); };
-  if (!document.startViewTransition) { applyNow(); return; }
+  if (id === state.settings.theme) return;
+  // Theme is pure CSS custom properties — no DOM re-render needed. Re-rendering the whole
+  // view inside the View Transition was the source of the switch lag; drop it.
+  const applyNow = () => { state.settings.theme = id; save(); applyTheme(); };
+  // Skip the circular reveal if reduced-motion is preferred, the API is missing, or a
+  // transition is already running (avoids the "Transition was aborted" abort).
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!document.startViewTransition || reduce || themeSwitching) { applyNow(); return; }
+  themeSwitching = true;
   const btn = document.getElementById('themeToggle');
   const rect = btn ? btn.getBoundingClientRect() : { left: 40, top: innerHeight - 40, width: 40, height: 40 };
   const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
@@ -2041,7 +2120,8 @@ function setTheme(id) {
       { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
       { duration: 500, easing: 'cubic-bezier(.4,0,.2,1)', pseudoElement: '::view-transition-new(root)' }
     );
-  });
+  }).catch(() => {});
+  vt.finished.finally(() => { themeSwitching = false; });
 }
 function openThemePicker() {
   const cur = state.settings.theme;
@@ -2049,7 +2129,7 @@ function openThemePicker() {
   ov.className = 'modal-ov';
   ov.innerHTML = `<div class="card theme-picker">
     <h3 class="modal-title">Тема оформления</h3>
-    <div class="theme-grid">${THEMES.map((t) => `<button class="theme-sw ${t.id === cur ? 'active' : ''}" data-id="${t.id}"><span class="tsw-prev" style="background:${t.prev}"></span><span class="tsw-name">${t.icon} ${t.name}</span></button>`).join('')}</div>
+    <div class="theme-grid">${THEMES.map((t) => `<button class="theme-sw ${t.id === cur ? 'active' : ''}" data-id="${t.id}"><span class="tsw-prev" style="background:${t.prev}"></span><span class="tsw-name">${t.name}</span></button>`).join('')}</div>
     <button class="btn ghost full" data-close>Закрыть</button></div>`;
   document.body.appendChild(ov);
   const close = () => ov.remove();
@@ -2095,7 +2175,7 @@ function applyReminder() {
     const h = new Date().getHours(); const { quietFrom: f, quietTo: to } = cfg;
     const quiet = f === to ? false : (f < to ? (h >= f && h < to) : (h >= f || h < to));
     if (quiet) return;
-    notifyNow('💧 Пора пить воду', cfg.body).then((ok) => { if (!ok) toast('💧 Пора пить воду!', 'ok'); });
+    notifyNow('Пора пить воду', cfg.body).then((ok) => { if (!ok) toast('Пора пить воду!', 'ok'); });
   }, Math.max(5, cfg.intervalMinutes) * 60 * 1000);
 }
 
@@ -2105,7 +2185,7 @@ async function testNotify() {
     toast('Уведомления заблокированы. Разреши их для приложения (значок замка в адресе / настройки Windows)', 'err');
     return;
   }
-  const shown = await notifyNow('💧 Проверка', 'Уведомления работают!');
+  const shown = await notifyNow('Проверка', 'Уведомления работают!');
   if (shown) toast('Уведомление отправлено', 'ok');
   else toast('Не удалось показать уведомление', 'err');
 }
@@ -2186,11 +2266,11 @@ const FIN_CATS = [
 ];
 const FIN_CAT = Object.fromEntries(FIN_CATS.map((c) => [c[0], { kind: c[1], icon: c[2], bench: c[3] }]));
 const FIN_GOALS = {
-  control:   { icon: '🎯', label: 'Контроль расходов', hint: 'видеть, куда уходят деньги' },
-  save:      { icon: '🐷', label: 'Копить на цель',    hint: 'откладывать системно' },
-  emergency: { icon: '💰', label: 'Финансовая подушка', hint: 'резерв 3–6 месяцев' },
-  debt:      { icon: '🏦', label: 'Закрыть долги',      hint: 'выбраться из кредитов' },
-  income:    { icon: '📈', label: 'Больше дохода',      hint: 'снизить зависимость от ЗП' },
+  control:   { icon: 'target2',    label: 'Контроль расходов', hint: 'видеть, куда уходят деньги' },
+  save:      { icon: 'piggy',      label: 'Копить на цель',    hint: 'откладывать системно' },
+  emergency: { icon: 'shield',     label: 'Финансовая подушка', hint: 'резерв 3–6 месяцев' },
+  debt:      { icon: 'landmark',   label: 'Закрыть долги',      hint: 'выбраться из кредитов' },
+  income:    { icon: 'trendingUp', label: 'Больше дохода',      hint: 'снизить зависимость от ЗП' },
 };
 const SKILL_CHIPS = ['Программирование', 'Дизайн', 'Копирайтинг', 'Английский', 'Продажи', 'Маркетинг', 'Видео/монтаж', 'Фото', 'Excel/таблицы', 'Репетиторство', 'Музыка', 'Ремонт/руки', 'Готовка', 'SMM', 'Вождение', 'Аналитика'];
 
@@ -2227,10 +2307,10 @@ function bindMoney(root, cb) {
 
 /* ---------- daily ledger (transactions) ---------- */
 const TX_TYPES = {
-  expense: { label: 'Расход', icon: '🛒', color: 'var(--danger)' },
-  saving: { label: 'Отложил', icon: '🐷', color: 'var(--accent-2)' },
-  unsave: { label: 'Из подушки', icon: '🏦', color: 'var(--warn)' }, // spent from set-aside money
-  income: { label: 'Доход', icon: '💵', color: 'var(--ok)' },
+  expense: { label: 'Расход', icon: 'cart', color: 'var(--danger)' },
+  saving: { label: 'Отложил', icon: 'piggy', color: 'var(--accent-2)' },
+  unsave: { label: 'Из подушки', icon: 'landmark', color: 'var(--warn)' }, // spent from set-aside money
+  income: { label: 'Доход', icon: 'banknote', color: 'var(--ok)' },
 };
 function curMonth() { return todayKey().slice(0, 7); }
 function monthKey(dstr) { return (dstr || todayKey()).slice(0, 7); }
@@ -2410,7 +2490,7 @@ function openFinanceQuiz(first) {
   function body(cur) {
     if (cur === 'goal') {
       return `<h3 class="onb-title">Финансовая цель</h3><p class="onb-sub">С чего начнём наводить порядок в деньгах.</p>
-        <div class="onb-cards">${Object.keys(FIN_GOALS).map((g) => card(d.goal === g, FIN_GOALS[g].icon, FIN_GOALS[g].label, FIN_GOALS[g].hint, g)).join('')}</div>
+        <div class="onb-cards">${Object.keys(FIN_GOALS).map((g) => card(d.goal === g, ic(FIN_GOALS[g].icon), FIN_GOALS[g].label, FIN_GOALS[g].hint, g)).join('')}</div>
         <div class="fin-two">
           <label class="mlabel">Человек в семье<input type="number" id="fqHouse" min="1" max="12" value="${d.household}"></label>
           <label class="mlabel">Главный триггер трат<input type="text" id="fqTrigger" placeholder="скука, стресс, акции…" value="${escapeAttr(d.trigger)}"></label>
@@ -2431,7 +2511,7 @@ function openFinanceQuiz(first) {
     }
     if (cur === 'savings') {
       return `<h3 class="onb-title">Деньги и сбережения</h3><p class="onb-sub">Сколько сейчас на руках и что уже отложено.</p>
-        <label class="mlabel">💼 Денег сейчас (наличные + карты + счёт)<input type="text" inputmode="numeric" class="money" id="fqBalance" placeholder="0" value="${d.balance || ''}"></label>
+        <label class="mlabel">${ic('briefcase')} Денег сейчас (наличные + карты + счёт)<input type="text" inputmode="numeric" class="money" id="fqBalance" placeholder="0" value="${d.balance || ''}"></label>
         <div class="fin-two">
           <label class="mlabel">Уже отложено (подушка/цель)<input type="text" inputmode="numeric" class="money" id="fqSaveCur" placeholder="0" value="${d.savings.current || ''}"></label>
           <label class="mlabel">Откладываю в месяц<input type="text" inputmode="numeric" class="money" id="fqSaveMon" placeholder="0" value="${d.savings.monthly || ''}"></label>
@@ -2441,7 +2521,7 @@ function openFinanceQuiz(first) {
     }
     if (cur === 'debts') {
       return `<h3 class="onb-title">Долги и кредиты</h3><p class="onb-sub">Если нет — просто нажми «Далее».</p>
-        <div id="fqDebtList">${d.debts.length ? d.debts.map((x) => debtRow(x)).join('') : '<div class="meal-empty">Долгов пока нет 🎉</div>'}</div>
+        <div id="fqDebtList">${d.debts.length ? d.debts.map((x) => debtRow(x)).join('') : '<div class="meal-empty">Долгов пока нет ' + ic('trophy') + '</div>'}</div>
         <button class="btn ghost sm" id="fqAddDebt">＋ Долг / кредит</button>
         <label class="mlabel" style="margin-top:12px">Могу доплачивать сверх минималок, ₽/мес<input type="text" inputmode="numeric" class="money" id="fqExtra" placeholder="0" value="${d.extraPayment || ''}"></label>`;
     }
@@ -2449,7 +2529,7 @@ function openFinanceQuiz(first) {
       const inc = d.income.reduce((s, i) => s + parseMoney(i.amount), 0);
       const exp = Object.values(d.exp).reduce((s, v) => s + (+v || 0), 0);
       const net = inc - exp - (+d.savings.monthly || 0);
-      return `<div class="onb-hero">${FIN_GOALS[d.goal].icon}</div><h3 class="onb-title">Готово!</h3>
+      return `<div class="onb-hero">${ic(FIN_GOALS[d.goal].icon)}</div><h3 class="onb-title">Готово!</h3>
         <div class="onb-summary">
           <div class="fin-sum-grid">
             <div class="fin-sum"><b>${finFmt(inc)}</b><small>доход</small></div>
@@ -2457,13 +2537,13 @@ function openFinanceQuiz(first) {
             <div class="fin-sum ${net < 0 ? 'neg' : 'pos'}"><b>${net >= 0 ? '+' : ''}${finFmt(net)}</b><small>остаётся</small></div>
             <div class="fin-sum"><b>${d.debts.length}</b><small>долгов</small></div>
           </div>
-          <div class="onb-break">Цель: ${FIN_GOALS[d.goal].icon} ${FIN_GOALS[d.goal].label} · дальше открой модули на вкладке «Финансы»</div>
+          <div class="onb-break">Цель: ${ic(FIN_GOALS[d.goal].icon)} ${FIN_GOALS[d.goal].label} · дальше открой модули на вкладке «Финансы»</div>
         </div>`;
     }
     return '';
   }
-  const incomeRow = (i) => `<div class="fin-row" data-id="${i.id}"><input type="text" class="fq-inc-name" placeholder="Источник" value="${escapeAttr(i.name)}"><input type="text" inputmode="numeric" class="fq-inc-amt money" placeholder="₽/мес" value="${i.amount || ''}"><button class="fin-row-del" data-del="${i.id}">✕</button></div>`;
-  const debtRow = (x) => `<div class="fin-row debt" data-id="${x.id}"><input type="text" class="fq-debt-name" placeholder="Название" value="${escapeAttr(x.name || '')}"><input type="text" inputmode="numeric" class="fq-debt-bal money" placeholder="Баланс" value="${x.balance || ''}"><input type="number" class="fq-debt-apr" placeholder="% год" min="0" value="${x.apr || ''}"><input type="text" inputmode="numeric" class="fq-debt-min money" placeholder="Мин/мес" value="${x.min || ''}"><button class="fin-row-del" data-del="${x.id}">✕</button></div>`;
+  const incomeRow = (i) => `<div class="fin-row" data-id="${i.id}"><input type="text" class="fq-inc-name" placeholder="Источник" value="${escapeAttr(i.name)}"><input type="text" inputmode="numeric" class="fq-inc-amt money" placeholder="₽/мес" value="${i.amount || ''}"><button class="fin-row-del" data-del="${i.id}">${ic('x')}</button></div>`;
+  const debtRow = (x) => `<div class="fin-row debt" data-id="${x.id}"><input type="text" class="fq-debt-name" placeholder="Название" value="${escapeAttr(x.name || '')}"><input type="text" inputmode="numeric" class="fq-debt-bal money" placeholder="Баланс" value="${x.balance || ''}"><input type="number" class="fq-debt-apr" placeholder="% год" min="0" value="${x.apr || ''}"><input type="text" inputmode="numeric" class="fq-debt-min money" placeholder="Мин/мес" value="${x.min || ''}"><button class="fin-row-del" data-del="${x.id}">${ic('x')}</button></div>`;
 
   // Read the currently-visible step's DOM back into the draft (so nothing is lost on nav).
   function grab(cur) {
@@ -2482,7 +2562,7 @@ function openFinanceQuiz(first) {
       <div class="onb-body">${body(cur)}</div>
       <div class="onb-actions">
         ${step > 0 ? '<button class="btn ghost" data-back>Назад</button>' : `<button class="btn ghost" data-skip>${first ? 'Позже' : 'Отмена'}</button>`}
-        <button class="btn primary" data-next>${last ? '💰 Готово' : 'Далее'}</button>
+        <button class="btn primary" data-next>${last ? ic('banknote') + ' Готово' : 'Далее'}</button>
       </div></div>`;
     // goal cards
     ov.querySelectorAll('.onb-card').forEach((b) => (b.onclick = () => { grab(cur); d.goal = b.dataset.val; render(); }));
@@ -2513,7 +2593,7 @@ function openFinanceQuiz(first) {
     fin.extraPayment = +d.extraPayment || 0;
     fin.onboarded = true;
     save(); renderFinance(); renderDashboard(); ov.remove();
-    toast('Финансовый план создан 💰', 'ok');
+    toast('Финансовый план создан', 'ok');
   }
   render();
   ov.onclick = (e) => { if (e.target === ov && !first) ov.remove(); };
@@ -2533,10 +2613,10 @@ function renderFinance() {
   const f = F();
   if (!f.onboarded) {
     root.innerHTML = `<div class="card fin-hero">
-      <div class="fin-hero-ic">💰</div>
+      <div class="fin-hero-ic">${ic('banknote')}</div>
       <h3>Финансовый планировщик</h3>
       <p>Пройди короткий квиз — получишь бюджет 50/30/20, стратегию по долгам, подушку безопасности, поиск утечек, план доходов, подработки и скрипты для переговоров о зарплате. Всё считается на твоём компьютере, данные никуда не уходят.</p>
-      <button class="btn primary" id="finStartQuiz">🎯 Пройти квиз (2 минуты)</button>
+      <button class="btn primary" id="finStartQuiz">${ic('target2')} Пройти квиз (2 минуты)</button>
     </div>`;
     $('#finStartQuiz').onclick = () => openFinanceQuiz(true);
     if (!finQuizAuto) { finQuizAuto = true; setTimeout(() => { if (!F().onboarded && currentView === 'finance') openFinanceQuiz(true); }, 350); }
@@ -2546,11 +2626,11 @@ function renderFinance() {
   root.innerHTML = `
     ${finBalanceCard()}
     <div class="fin-strip">
-      ${finStat('Доход / мес', finFmt(inc), '📥')}
-      ${finStat('Потрачено', finFmt(spent), '📤', spent > inc ? 'neg' : '')}
-      ${finStat('Отложено', finFmt(saved), '🐷')}
-      ${finStat('Долги', finFmt(totalDebt()), '🏦')}
-      <button class="btn ghost sm fin-edit" id="finEdit">✎ План</button>
+      ${finStat('Доход / мес', finFmt(inc), ic('download'))}
+      ${finStat('Потрачено', finFmt(spent), ic('upload'), spent > inc ? 'neg' : '')}
+      ${finStat('Отложено', finFmt(saved), ic('piggy'))}
+      ${finStat('Долги', finFmt(totalDebt()), ic('landmark'))}
+      <button class="btn ghost sm fin-edit" id="finEdit">${ic('pen')} План</button>
     </div>
     ${finTrackerCard()}
     <div class="fin-modules" id="finModules">${[finBudgetCard(), finSavingsCard(), finDebtCard(), finLeaksCard(), finImpulseCard()].join('')}</div>`;
@@ -2562,22 +2642,22 @@ function finBalanceCard() {
   const bal = currentBalance();
   return `<div class="card fin-balance">
     <div class="fin-bal-main">
-      <div class="fin-bal-head"><span class="fin-bal-label">💼 Сейчас денег</span><span class="fin-bal-val ${bal < 0 ? 'neg' : ''}">${finFmt(bal)}</span></div>
-      <button class="btn ghost sm" id="finAdjBal">✎ Скорректировать</button>
+      <div class="fin-bal-head"><span class="fin-bal-label">${ic('briefcase')} Сейчас денег</span><span class="fin-bal-val ${bal < 0 ? 'neg' : ''}">${finFmt(bal)}</span></div>
+      <button class="btn ghost sm" id="finAdjBal">${ic('pen')} Скорректировать</button>
     </div>
     <div class="fin-bal-sub">
-      <span>🐷 Отложено <b>${finFmt(totalSaved())}</b></span>
-      <span>💰 Всего с накоплениями <b>${finFmt(totalWealth())}</b></span>
+      <span>${ic('piggy')} Отложено <b>${finFmt(totalSaved())}</b></span>
+      <span>${ic('banknote')} Всего с накоплениями <b>${finFmt(totalWealth())}</b></span>
     </div>
   </div>`;
 }
 function adjustBalance() {
-  openModal({ title: '💼 Сколько сейчас денег', body: 'Наличные + карты + счёт (без учёта отложенного). Дальше баланс меняется сам от записей.', fields: [{ key: 'b', label: 'Текущий баланс, ₽', value: fmtMoneyInput(currentBalance()) }], okText: 'Сохранить' }).then((r) => {
+  openModal({ title: 'Сколько сейчас денег', body: 'Наличные + карты + счёт (без учёта отложенного). Дальше баланс меняется сам от записей.', fields: [{ key: 'b', label: 'Текущий баланс, ₽', value: fmtMoneyInput(currentBalance()) }], okText: 'Сохранить' }).then((r) => {
     if (!r) return;
     const want = parseMoney(r.b);
     // back-solve the base so the shown balance equals what the user entered
     F().balance = want - (sumTx(F().tx, 'income') - sumTx(F().tx, 'expense') - sumTx(F().tx, 'saving'));
-    save(); renderFinance(); renderDashboard(); toast('Баланс обновлён 💼', 'ok');
+    save(); renderFinance(); renderDashboard(); toast('Баланс обновлён', 'ok');
   });
 }
 
@@ -2587,8 +2667,8 @@ function curMonthLabel() { const d = new Date(); return RU_MONTHS[d.getMonth()] 
 function finTrackerCard() {
   const cats = FIN_CATS.map((c) => `<option value="${c[0]}">${c[2]} ${c[0]}</option>`).join('');
   return `<div class="card fin-tracker">
-    <div class="card-head"><h3>➕ Записать операцию</h3><span class="muted" style="text-transform:capitalize">${curMonthLabel()}</span></div>
-    <div class="fin-type-seg" id="txSeg">${['expense', 'saving', 'unsave', 'income'].map((t) => `<button data-txtype="${t}" class="${t === txType ? 'on ' + t : t}">${TX_TYPES[t].icon} ${TX_TYPES[t].label}</button>`).join('')}</div>
+    <div class="card-head"><h3>${ic('plus')} Записать операцию</h3><span class="muted" style="text-transform:capitalize">${curMonthLabel()}</span></div>
+    <div class="fin-type-seg" id="txSeg">${['expense', 'saving', 'unsave', 'income'].map((t) => `<button data-txtype="${t}" class="${t === txType ? 'on ' + t : t}">${ic(TX_TYPES[t].icon)} ${TX_TYPES[t].label}</button>`).join('')}</div>
     <div class="fin-add-row">
       <input type="text" inputmode="numeric" class="money" id="txAmount" placeholder="Сумма ₽">
       <select id="txCat" ${txType !== 'expense' ? 'style="display:none"' : ''}>${cats}</select>
@@ -2608,12 +2688,12 @@ function ledgerHTML() {
   const dlabel = day === todayKey() ? 'Сегодня' : day === ykey ? 'Вчера' : `${RU_DOW[(dt.getDay() + 6) % 7]}, ${dt.getDate()} ${RU_MONTHS_GEN[dt.getMonth()]}`;
   const rows = items.map((t) => {
     const tt = TX_TYPES[t.type]; const sign = (t.type === 'expense' || t.type === 'unsave') ? '−' : t.type === 'income' ? '+' : '';
-    return `<div class="fin-led-item"><span class="fin-led-ic">${tt.icon}</span><div class="fin-led-body"><span class="fin-led-cat">${escapeHtml(t.cat || tt.label)}</span>${t.note ? `<span class="fin-led-note">${escapeHtml(t.note)}</span>` : ''}</div><span class="fin-led-amt ${t.type}">${sign}${finFmt(t.amount)}</span><button class="fin-row-del" data-txdel="${t.id}">✕</button></div>`;
+    return `<div class="fin-led-item"><span class="fin-led-ic">${ic(tt.icon)}</span><div class="fin-led-body"><span class="fin-led-cat">${escapeHtml(t.cat || tt.label)}</span>${t.note ? `<span class="fin-led-note">${escapeHtml(t.note)}</span>` : ''}</div><span class="fin-led-amt ${t.type}">${sign}${finFmt(t.amount)}</span><button class="fin-row-del" data-txdel="${t.id}">${ic('x')}</button></div>`;
   }).join('');
   const dayFlow = items.reduce((s, t) => s + (t.type === 'income' ? +t.amount : t.type === 'expense' ? -+t.amount : 0), 0);
   const daySaved = items.reduce((s, t) => s + (t.type === 'saving' ? +t.amount : t.type === 'unsave' ? -+t.amount : 0), 0);
-  const badge = items.length ? `${dayFlow < 0 ? '−' : '+'}${finFmt(Math.abs(dayFlow))}${daySaved ? ' · 🐷 ' + (daySaved < 0 ? '−' : '') + finFmt(Math.abs(daySaved)) : ''}` : '';
-  return `<div class="fin-led-day"><div class="fin-led-date"><span>${dlabel}</span><span class="fin-led-day-sum">${badge}</span></div>${items.length ? rows : '<div class="meal-empty">Нет операций за этот день. Запиши сверху ☝️</div>'}</div>`;
+  const badge = items.length ? `${dayFlow < 0 ? '−' : '+'}${finFmt(Math.abs(dayFlow))}${daySaved ? ' · ' + ic('piggy') + ' ' + (daySaved < 0 ? '−' : '') + finFmt(Math.abs(daySaved)) : ''}` : '';
+  return `<div class="fin-led-day"><div class="fin-led-date"><span>${dlabel}</span><span class="fin-led-day-sum">${badge}</span></div>${items.length ? rows : '<div class="meal-empty">Нет операций за этот день. Запиши сверху</div>'}</div>`;
 }
 function addTxFromForm() {
   const amount = parseMoney($('#txAmount').value);
@@ -2663,24 +2743,24 @@ function finBudgetCard() {
     return `<div class="fin-bud-row"><div class="fin-bud-top"><span>${label}</span><span>${finFmt(actual)} <small>/ ${finFmt(ideal)}</small></span></div>
       <div class="fin-bud-track"><div class="fin-bud-fill ${cls}" style="width:${pct}%"></div><span class="fin-bud-ideal" style="left:${idealPct}%"></span></div></div>`;
   };
-  const advice = { 'needs-heavy': 'Обязательные расходы съедают >55% дохода — главный тормоз. Загляни в «Утечки».', 'low-savings': 'Откладываешь <10%. Настрой авто-сбережения в «Резерве».', 'overspend': 'Тратишь больше, чем зарабатываешь. Срочно в «Утечки расходов».', 'balanced': 'Близко к 50/30/20 — держи темп 👌' }[b.advice] || 'Заполни доход и расходы в квизе.';
-  return finCard('budget', '⚖️', 'Бюджет 50/30/20', `
+  const advice = { 'needs-heavy': 'Обязательные расходы съедают >55% дохода — главный тормоз. Загляни в «Утечки».', 'low-savings': 'Откладываешь <10%. Настрой авто-сбережения в «Резерве».', 'overspend': 'Тратишь больше, чем зарабатываешь. Срочно в «Утечки расходов».', 'balanced': 'Близко к 50/30/20 — держи темп' }[b.advice] || 'Заполни доход и расходы в квизе.';
+  return finCard('budget', ic('scale'), 'Бюджет 50/30/20', `
     ${row('Нужное', b.needs, b.ideal.needs, 'needs')}
     ${row('Хотелки', b.wants, b.ideal.wants, 'wants')}
     ${row('Сбережения', b.save, b.ideal.save, 'save')}
     <div class="fin-note">${advice}</div>
     <div class="fin-week">Недельный лимит на хотелки без чувства вины: <b>${finFmt(b.ideal.wants / 4.3)}</b></div>
-    <button class="btn ghost sm" data-refuse>🗣 5 фраз, чтобы вежливо отказать</button>`);
+    <button class="btn ghost sm" data-refuse>${ic('speech')} 5 фраз, чтобы вежливо отказать</button>`);
 }
 function openRefusalPhrases() {
   const phrases = [
-    ['🍽 Дорогой ужин', '«Звучит здорово! Но в этом месяце я держу бюджет. Давай выберем место попроще или перенесём на следующий раз?»'],
-    ['✈️ Поездка', '«Очень хочу, но сейчас это не вписывается в мой план. Давай прикинем более бюджетный вариант или другую дату?»'],
-    ['🎂 Дорогой день рождения', '«Я обязательно приду поздравить! По тратам в этот раз ограничусь — посидим по-простому, главное — вместе.»'],
-    ['🎁 Общий подарок', '«Я в деле. Давай уложимся в комфортную сумму — скину пару идей, которые впишутся в бюджет.»'],
-    ['☕ Спонтанная встреча', '«Сегодня пас по тратам, но я за прогулку или кофе дома — так тоже отлично повидаемся.»'],
+    ['Дорогой ужин', '«Звучит здорово! Но в этом месяце я держу бюджет. Давай выберем место попроще или перенесём на следующий раз?»'],
+    ['Поездка', '«Очень хочу, но сейчас это не вписывается в мой план. Давай прикинем более бюджетный вариант или другую дату?»'],
+    ['Дорогой день рождения', '«Я обязательно приду поздравить! По тратам в этот раз ограничусь — посидим по-простому, главное — вместе.»'],
+    ['Общий подарок', '«Я в деле. Давай уложимся в комфортную сумму — скину пару идей, которые впишутся в бюджет.»'],
+    ['Спонтанная встреча', '«Сегодня пас по тратам, но я за прогулку или кофе дома — так тоже отлично повидаемся.»'],
   ];
-  openInfoModal('🗣 Отказать без чувства вины', `
+  openInfoModal('Отказать без чувства вины', `
     <p class="hint">Коротко, тепло и без оправданий — деньги это нормально обсуждать.</p>
     ${phrases.map((p) => `<div class="fin-script"><div class="fin-script-t">${p[0]}</div><p>${escapeHtml(p[1])}</p></div>`).join('')}`);
 }
@@ -2690,7 +2770,7 @@ function finSavingsCard() {
   const goalLine = (s.goalAmount && F().savings.goalName)
     ? `До цели «${escapeHtml(F().savings.goalName)}» (${finFmt(s.goalAmount)}): осталось ${finFmt(s.remaining)}`
     : 'Сколько времени до подушки при разных взносах:';
-  return finCard('savings', '🐷', 'Резерв и сбережения', `
+  return finCard('savings', ic('piggy'), 'Резерв и сбережения', `
     <div class="fin-bud-top"><span>Подушка на 3 мес (${finFmt(s.emerg3)})</span><span>${Math.round(s.emergProgress)}%</span></div>
     <div class="fin-bud-track"><div class="fin-bud-fill save" style="width:${s.emergProgress}%"></div></div>
     <div class="fin-note">Накоплено ${finFmt(s.cur)} · норма сбережений ${s.rate}% · на 6 мес нужно ${finFmt(s.emerg6)}</div>
@@ -2702,7 +2782,7 @@ function finDebtCard() {
   const names = { snowball: 'Снежный ком', avalanche: 'Лавина', hybrid: 'Гибрид' };
   let body;
   if (!cmp) {
-    body = `<div class="meal-empty">Долгов нет 🎉</div><button class="btn ghost sm" data-finaddebt>＋ Добавить долг</button>`;
+    body = `<div class="meal-empty">Долгов нет ${ic('trophy')}</div><button class="btn ghost sm" data-finaddebt>＋ Добавить долг</button>`;
   } else {
     const method = F().debtMethod || 'avalanche';
     const cur = simulateDebts(method);
@@ -2715,20 +2795,20 @@ function finDebtCard() {
         <div><b>${finFmt(cur.totalInterest)}</b><small>переплата</small></div>
         <div><b>${finFmt(cur.monthly)}</b><small>всего/мес</small></div>
       </div>
-      ${!cur.cleared ? '<div class="fin-note warn">⚠️ Минималок не хватает — долг почти не гасится. Увеличь доплату.</div>' : `<div class="fin-note">Меньшая переплата у метода «${names[cmp.best]}». Снежный ком мотивирует быстрыми победами.</div>`}
-      <div class="fin-actions-row"><button class="btn ghost sm" data-debtcompare>📊 Сравнить методы</button><button class="btn ghost sm" data-finaddebt>＋ Долг</button></div>`;
+      ${!cur.cleared ? `<div class="fin-note warn">${ic('alert')} Минималок не хватает — долг почти не гасится. Увеличь доплату.</div>` : `<div class="fin-note">Меньшая переплата у метода «${names[cmp.best]}». Снежный ком мотивирует быстрыми победами.</div>`}
+      <div class="fin-actions-row"><button class="btn ghost sm" data-debtcompare>${ic('barChart')} Сравнить методы</button><button class="btn ghost sm" data-finaddebt>＋ Долг</button></div>`;
   }
-  return finCard('debt', '🏦', 'Долги и кредиты', body);
+  return finCard('debt', ic('landmark'), 'Долги и кредиты', body);
 }
 function finLeaksCard() {
   const { leaks, totalSave } = leakScan();
   let body;
-  if (!leaks.length) body = `<div class="meal-empty">Явных утечек не видно 👍 Категории в норме.</div>`;
+  if (!leaks.length) body = `<div class="meal-empty">Явных утечек не видно ${ic('thumbUp')} Категории в норме.</div>`;
   else body = `<div class="fin-note">Можно вернуть ~<b>${finFmt(totalSave)}</b>/мес. Топ утечек:</div>
     <div class="fin-leaks">${leaks.slice(0, 5).map((l) => `<div class="fin-leak"><div class="fin-leak-main"><span class="fin-leak-name">${escapeHtml(l.name)}</span><span class="fin-leak-over">−${finFmt(l.over)}</span></div>
       <div class="fin-leak-tags"><span class="ftag">сложность: ${l.difficulty}</span><span class="ftag">качество: ${l.impact}</span><span class="ftag pri-${l.priority === 'высокий' ? 'hi' : l.priority === 'средний' ? 'mid' : 'lo'}">приоритет: ${l.priority}</span></div></div>`).join('')}</div>
-    <button class="btn ghost sm" data-leakplan>📋 План на 30 дней</button>`;
-  return finCard('leaks', '🔍', 'Утечки расходов', body);
+    <button class="btn ghost sm" data-leakplan>${ic('clipboard')} План на 30 дней</button>`;
+  return finCard('leaks', ic('search'), 'Утечки расходов', body);
 }
 function finImpulseCard() {
   const f = F(); const wl = f.impulse.wishlist || []; const now = Date.now();
@@ -2736,19 +2816,19 @@ function finImpulseCard() {
     const ready = (w.added || now) + (w.waitDays || 3) * 86400000;
     const daysLeft = Math.ceil((ready - now) / 86400000);
     const ok = daysLeft <= 0;
-    return `<div class="fin-wish ${ok ? 'ready' : ''}"><span class="fin-wish-name">${escapeHtml(w.name)}</span><span class="fin-wish-price">${finFmt(w.price)}</span><span class="fin-wish-state">${ok ? '✅ решай на холодную' : '⏳ ' + daysLeft + ' дн'}</span><button class="fin-row-del" data-wishdel="${w.id}">✕</button></div>`;
+    return `<div class="fin-wish ${ok ? 'ready' : ''}"><span class="fin-wish-name">${escapeHtml(w.name)}</span><span class="fin-wish-price">${finFmt(w.price)}</span><span class="fin-wish-state">${ok ? ic('check') + ' решай на холодную' : ic('hourglass') + ' ' + daysLeft + ' дн'}</span><button class="fin-row-del" data-wishdel="${w.id}">${ic('x')}</button></div>`;
   }).join('');
-  return finCard('impulse', '🛑', 'Импульс-контроль', `
+  return finCard('impulse', ic('ban'), 'Импульс-контроль', `
     <div class="fin-note">Захотел купить? Добавь в список — вернись через пару дней на холодную голову. Триггер: <b>${escapeHtml(f.profile.trigger || '—')}</b></div>
     <div class="fin-wish-add"><input type="text" id="finWishName" placeholder="Что хочу купить"><input type="text" inputmode="numeric" class="money" id="finWishPrice" placeholder="₽"><button class="btn primary sm" id="finWishAdd">Позже</button></div>
-    <div class="fin-wishes">${wl.length ? items : '<div class="meal-empty">Список пуст — и кошелёк цел 😌</div>'}</div>
+    <div class="fin-wishes">${wl.length ? items : '<div class="meal-empty">Список пуст — и кошелёк цел</div>'}</div>
     <div class="fin-check-legend"><b class="yn-yes">ДА</b> — нужно и в бюджете · <b class="yn-later">ПОЗЖЕ</b> — импульс, в список · <b class="yn-no">НЕТ</b> — сработал триггер</div>`);
 }
 function addWish() {
   const name = $('#finWishName').value.trim(); const price = parseMoney($('#finWishPrice').value);
   if (!name) return toast('Что за покупка?', 'err');
   F().impulse.wishlist.unshift({ id: uid(), name, price, added: Date.now(), waitDays: 3, decided: false });
-  save(); renderFinance(); toast('В списке желаний — вернись через 3 дня 😌', 'ok');
+  save(); renderFinance(); toast('В списке желаний — вернись через 3 дня', 'ok');
 }
 function addFinDebt() {
   openModal({ title: 'Новый долг', fields: [{ key: 'name', label: 'Название', placeholder: 'напр. Кредитка' }, { key: 'balance', label: 'Баланс, ₽' }, { key: 'apr', label: 'Ставка, % годовых' }, { key: 'min', label: 'Мин. платёж, ₽/мес' }], okText: 'Добавить' }).then((r) => {
@@ -2767,13 +2847,13 @@ function openInfoModal(title, html) {
 function openDebtCompare() {
   const cmp = debtCompare(); if (!cmp) return;
   const names = { snowball: 'Снежный ком', avalanche: 'Лавина', hybrid: 'Гибрид' };
-  const rows = ['snowball', 'avalanche', 'hybrid'].map((m) => { const r = cmp.res[m]; return `<tr class="${m === cmp.best ? 'best' : ''}"><td>${names[m]}${m === cmp.best ? ' 🏆' : ''}</td><td>${r.months} мес</td><td>${finFmt(r.totalInterest)}</td><td>${finFmt(r.monthly)}</td></tr>`; }).join('');
+  const rows = ['snowball', 'avalanche', 'hybrid'].map((m) => { const r = cmp.res[m]; return `<tr class="${m === cmp.best ? 'best' : ''}"><td>${names[m]}${m === cmp.best ? ' ' + ic('trophy') : ''}</td><td>${r.months} мес</td><td>${finFmt(r.totalInterest)}</td><td>${finFmt(r.monthly)}</td></tr>`; }).join('');
   const best = simulateDebts(cmp.best);
   const order = F().debts.filter((d) => +d.balance > 0).map((d) => ({ name: d.name, paid: (best.perDebt[d.id] || {}).paidMonth || 0 })).sort((a, b) => a.paid - b.paid);
   const orderHtml = order.map((o, i) => `<div class="dd-task"><span class="task-pri high"></span><span class="dd-task-text">${i + 1}. ${escapeHtml(o.name)}</span><span class="dd-task-tag">${o.paid ? 'к ' + o.paid + ' мес' : '—'}</span></div>`).join('');
-  openInfoModal('📊 Сравнение методов', `
+  openInfoModal('Сравнение методов', `
     <div class="fin-table-wrap"><table class="fin-table"><thead><tr><th>Метод</th><th>Срок</th><th>Переплата</th><th>В месяц</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <p class="hint">🏆 «${names[cmp.best]}» — минимальная переплата. Лавина (высокий % сначала) экономит деньги, снежный ком (мелкие сначала) мотивирует, гибрид — баланс.</p>
+    <p class="hint">${ic('trophy')} «${names[cmp.best]}» — минимальная переплата. Лавина (высокий % сначала) экономит деньги, снежный ком (мелкие сначала) мотивирует, гибрид — баланс.</p>
     <div class="fin-sub-title">Порядок закрытия (${names[cmp.best]}):</div><div class="dd-tasks">${orderHtml}</div>
     <div class="fin-note">Чек-лист: 1) плати минимум по всем; 2) всю доплату — в первый долг из списка; 3) закрыл — его минимум добавь к следующему; 4) повторяй.</div>`);
 }
@@ -2787,7 +2867,7 @@ function openLeakPlan() {
     ['Неделя 4 — Счета', 'Пересмотри тариф связи/интернета, страховки, энергию. Позвони и попроси условия лучше — часто дают скидку.'],
   ];
   const list = leaks.slice(0, 6).map((l) => `<div class="dd-task"><span class="dd-task-text">${escapeHtml(l.name)} — вернуть ~${finFmt(l.over)}</span><span class="dd-task-tag">${l.priority}</span></div>`).join('');
-  openInfoModal('📋 План сокращения на 30 дней', `
+  openInfoModal('План сокращения на 30 дней', `
     <div class="fin-note">Цель: вернуть ~<b>${finFmt(totalSave)}</b>/мес, не превращая жизнь в финансовую тюрьму.</div>
     ${leaks.length ? `<div class="fin-sub-title">Куда смотреть:</div><div class="dd-tasks">${list}</div>` : ''}
     <div class="fin-sub-title">По неделям:</div>${weeks.map((w) => `<div class="fin-week-plan"><b>${w[0]}</b><p>${w[1]}</p></div>`).join('')}`);
@@ -2798,7 +2878,7 @@ function renderFinanceDash() {
   const box = $('#financeDash'); if (!box) return;
   const f = F();
   if (!f.onboarded) {
-    box.innerHTML = `<div class="empty-add"><p>Заведи финансовый трекер — записывай траты и сбережения, а бюджет, долги и подушка посчитаются сами.</p><button class="btn primary sm" id="finDashStart">🎯 Пройти квиз</button></div>`;
+    box.innerHTML = `<div class="empty-add"><p>Заведи финансовый трекер — записывай траты и сбережения, а бюджет, долги и подушка посчитаются сами.</p><button class="btn primary sm" id="finDashStart">${ic('target2')} Пройти квиз</button></div>`;
     const b = $('#finDashStart'); if (b) b.onclick = () => { switchView('finance'); };
     return;
   }
@@ -2811,7 +2891,7 @@ function renderFinanceDash() {
       <div class="fin-dash-stat"><b>${finFmt(saved)}</b><small>отложено</small></div>
       <div class="fin-dash-stat"><b>${finFmt(totalSaved())}</b><small>всего в подушке</small></div>
     </div>
-    <div class="fin-dash-leak">💡 Записывай траты во вкладке «Финансы» — баланс и аналитика обновятся сами.</div>`;
+    <div class="fin-dash-leak">${ic('bulb')} Записывай траты во вкладке «Финансы» — баланс и аналитика обновятся сами.</div>`;
 }
 
 /* ============================================================
@@ -2952,7 +3032,7 @@ function wire() {
     if (window.desktop.onUpdateAvailable) window.desktop.onUpdateAvailable((v) => showUpdateBanner(v));
     if (window.desktop.onUpdateChecked) window.desktop.onUpdateChecked((r) => {
       if (r === 'staged') return; // banner already shown by onUpdateAvailable
-      if (r === 'uptodate') toast('У тебя последняя версия ✓', 'ok');
+      if (r === 'uptodate') toast('У тебя последняя версия', 'ok');
       else if (r === 'off') toast('Автообновление ещё не настроено');
       else toast('Не удалось проверить обновления', 'err');
     });
@@ -2964,7 +3044,7 @@ function wire() {
       toast('Проверяю обновления…');
       const latest = await fetchRemoteVersion();
       if (latest && bootVersion && verGt(latest, bootVersion)) showUpdateBanner(latest, true);
-      else toast('У тебя последняя версия ✓', 'ok');
+      else toast('У тебя последняя версия', 'ok');
     };
   }
 }
@@ -3002,7 +3082,7 @@ function showUpdateBanner(version, served) {
   if (splash && !splash.classList.contains('done')) { setTimeout(() => showUpdateBanner(version, served), 300); return; }
   const b = document.createElement('div');
   b.id = 'updateBanner'; b.className = 'update-banner';
-  b.innerHTML = `<div class="ub-ic">✨</div>
+  b.innerHTML = `<div class="ub-ic">${ic('sparkles')}</div>
     <div class="ub-txt"><b>Обновление ${escapeHtml(String(version))}</b><span>готово — установить в один клик</span></div>
     <div class="ub-actions"><button class="btn ghost sm" id="ubLater">Позже</button><button class="btn primary sm" id="ubNow">Обновить</button></div>`;
   document.body.appendChild(b);
@@ -3073,7 +3153,7 @@ function applyCloudState(json) {
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     markUpdated();
     loadProfileForm(); renderAll(); applyTheme(); applyReminder();
-    toast('Данные синхронизированы ☁️', 'ok');
+    toast('Данные синхронизированы', 'ok');
   } catch (e) { console.warn('applyCloud failed', e); }
   finally { cloudApplying = false; }
 }
@@ -3156,7 +3236,7 @@ function refreshVerified() {
       account.verified = true; window.account = account;
       if (verifyPoll) { clearInterval(verifyPoll); verifyPoll = null; }
       renderAccountCard(); updateTopbar();
-      toast('Почта подтверждена ✅', 'ok');
+      toast('Почта подтверждена', 'ok');
     }
   }).catch(() => {});
 }
@@ -3188,7 +3268,7 @@ function setSyncBadge(status) {
   const b = $('#syncBadge'); if (!b) return;
   if (!account || !status) { b.hidden = true; return; }
   b.hidden = false;
-  b.textContent = status === 'ok' ? '☁️' : '⚠️';
+  b.innerHTML = status === 'ok' ? ic('cloud') : ic('alert');
   b.title = status === 'ok' ? 'Синхронизировано' : 'Нет синхронизации';
 }
 function renderAccountCard() {
@@ -3197,17 +3277,17 @@ function renderAccountCard() {
   if (account) {
     const initial = (account.nickname || account.email || '?').trim().slice(0, 1).toUpperCase();
     const verifyRow = account.verified ? '' :
-      `<div class="acc-verify">✉️ Почта не подтверждена. Перейди по ссылке из письма — статус обновится сам.
+      `<div class="acc-verify">${ic('mail')} Почта не подтверждена. Перейди по ссылке из письма — статус обновится сам.
         <span class="acc-verify-spam">Письмо часто попадает в «Спам» — проверь и там.</span>
         <button class="acc-link" id="accResend">Отправить письмо ещё раз</button></div>`;
     box.innerHTML = `<div class="card acc-card">
       <div class="acc-head">
         <div class="acc-avatar">${escapeHtml(initial)}</div>
         <div class="acc-info"><b>${escapeHtml(account.nickname || 'Аккаунт')}</b><span>${escapeHtml(account.email || '')}</span></div>
-        ${account.verified ? '<span class="acc-verified" title="Почта подтверждена">✅</span>' : ''}
+        ${account.verified ? '<span class="acc-verified" title="Почта подтверждена">' + ic('check') + '</span>' : ''}
       </div>
       ${verifyRow}
-      <div class="acc-sync">☁️ Синхронизация включена — данные на телефоне и компьютере совпадают</div>
+      <div class="acc-sync">${ic('cloud')} Синхронизация включена — данные на телефоне и компьютере совпадают</div>
       <button class="btn ghost full" id="accLogout">Выйти</button>
     </div>`;
     $('#accLogout').onclick = () => { authLogout(); toast('Вышел из аккаунта'); };
@@ -3216,13 +3296,13 @@ function renderAccountCard() {
       const u = FB.auth.currentUser;
       if (!u) return;
       rs.disabled = true;
-      u.sendEmailVerification().then(() => toast('Письмо отправлено — проверь почту и папку «Спам» ✉️', 'ok'))
+      u.sendEmailVerification().then(() => toast('Письмо отправлено — проверь почту и папку «Спам»', 'ok'))
         .catch((e) => { rs.disabled = false; toast(authErrMsg(e), 'err'); });
     };
     return;
   }
   box.innerHTML = `<div class="card acc-card">
-    <div class="card-head"><h3>👤 Аккаунт и синхронизация</h3></div>
+    <div class="card-head"><h3>${ic('user')} Аккаунт и синхронизация</h3></div>
     <p class="hint" style="margin-top:0">Войди, чтобы данные синхронизировались между телефоном и компьютером.</p>
     <div class="acc-tabs" data-mode="login">
       <span class="acc-pill"></span>
@@ -3254,7 +3334,7 @@ function renderAccountCard() {
     const email = $('#accEmail').value.trim();
     if (!email) { err.textContent = 'Введи почту — пришлём ссылку для сброса'; $('#accEmail').focus(); return; }
     forgot.disabled = true;
-    try { await authReset(email); toast('Ссылка для сброса пароля отправлена на почту 📧', 'ok'); }
+    try { await authReset(email); toast('Ссылка для сброса пароля отправлена на почту', 'ok'); }
     catch (e) { err.textContent = authErrMsg(e); }
     finally { forgot.disabled = false; }
   };
@@ -3265,8 +3345,8 @@ function renderAccountCard() {
     if (mode === 'register' && !nk) { err.textContent = 'Придумай никнейм'; return; }
     submit.disabled = true; const label = submit.textContent; submit.textContent = '…';
     try {
-      if (mode === 'register') { await authRegister(email, pass, nk); toast('Аккаунт создан! Проверь почту (и «Спам») — подтверди адрес ✉️', 'ok'); }
-      else { await authLogin(email, pass); toast('Готово! Синхронизация включена ☁️', 'ok'); }
+      if (mode === 'register') { await authRegister(email, pass, nk); toast('Аккаунт создан! Проверь почту (и «Спам») — подтверди адрес', 'ok'); }
+      else { await authLogin(email, pass); toast('Готово! Синхронизация включена', 'ok'); }
     } catch (e) { err.textContent = authErrMsg(e); submit.disabled = false; submit.textContent = label; }
   };
 }
@@ -3300,7 +3380,7 @@ function confettiBurst() {
     box.appendChild(c);
   }
   ['pop-tl', 'pop-tr', 'pop-bl', 'pop-br'].forEach((cls) => {
-    const p = document.createElement('div'); p.className = 'popper ' + cls; p.textContent = '🎉'; box.appendChild(p);
+    const p = document.createElement('div'); p.className = 'popper ' + cls; p.innerHTML = ic('party'); box.appendChild(p);
   });
   setTimeout(() => box.remove(), 5200);
 }
@@ -3310,10 +3390,10 @@ function birthdayGreeting() {
   confettiBurst();
   const ov = document.createElement('div'); ov.className = 'modal-ov bday-ov';
   ov.innerHTML = `<div class="card bday-card">
-    <div class="bday-emoji">🎂</div>
+    <div class="bday-emoji">${ic('cake')}</div>
     <h3 class="modal-title">С днём рождения${name ? ', ' + escapeHtml(name) : ''}!</h3>
-    <p class="onb-sub">${age ? 'Тебе сегодня ' + age + '! ' : ''}Пусть новый год будет самым здоровым и ярким. Aqua рядом каждый день 💧</p>
-    <button class="btn primary full" data-close>Спасибо 🥳</button>
+    <p class="onb-sub">${age ? 'Тебе сегодня ' + age + '! ' : ''}Пусть новый год будет самым здоровым и ярким. Aqua рядом каждый день</p>
+    <button class="btn primary full" data-close>Спасибо</button>
   </div>`;
   document.body.appendChild(ov);
   const close = () => ov.remove();
@@ -3333,12 +3413,12 @@ function maybeShowInstallHint() {
   const ios = /iphone|ipad|ipod/i.test(ua);
   const el = document.createElement('div'); el.className = 'install-hint';
   const steps = ios
-    ? `<span class="ih-step"><i class="ih-num">1</i>Нажми <b>Поделиться</b> <span class="ih-share">⬆︎</span> внизу Safari</span>
-       <span class="ih-step"><i class="ih-num">2</i>Выбери <b>«На экран „Домой"»</b> ➕</span>`
+    ? `<span class="ih-step"><i class="ih-num">1</i>Нажми <b>Поделиться</b> <span class="ih-share">${ic('share')}</span> внизу Safari</span>
+       <span class="ih-step"><i class="ih-num">2</i>Выбери <b>«На экран „Домой"»</b> ${ic('plus')}</span>`
     : `<span class="ih-step"><i class="ih-num">1</i>Открой меню браузера <b>⋮</b></span>
        <span class="ih-step"><i class="ih-num">2</i>Нажми <b>«Установить приложение»</b></span>`;
-  el.innerHTML = `<button class="ih-close" aria-label="Закрыть">✕</button>
-    <div class="ih-ic">📲</div>
+  el.innerHTML = `<button class="ih-close" aria-label="Закрыть">${ic('x')}</button>
+    <div class="ih-ic">${ic('phone')}</div>
     <div class="ih-body">
       <b>Установи Aqua на телефон</b>
       <div class="ih-steps">${steps}</div>

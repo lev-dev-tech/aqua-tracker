@@ -257,6 +257,11 @@ body::after { width: 38vw; height: 38vw; right: -6vw; top: 2vw;
 .nav-item:hover, .theme-toggle:hover { background: var(--panel-hi); color: var(--text); }
 .nav-item:hover .ic { transform: scale(1.1); }
 
+/* inline icon inside text/headers/buttons — scales with font-size */
+.i { display: inline-flex; align-items: center; justify-content: center; vertical-align: -.14em; flex-shrink: 0; }
+.i svg { width: 1.08em; height: 1.08em; display: block; }
+.fr-ph { display: grid; place-items: center; color: var(--muted); }
+.fr-ph svg { width: 22px; height: 22px; }
 /* ---------- line-icon system (SVG replacing chrome emoji) ---------- */
 .nav-item .ic svg, .theme-toggle .ic svg { width: 21px; height: 21px; display: block; margin: 0 auto; }
 .btn:has(.btn-ic), .tab:has(.btn-ic) { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
