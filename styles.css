@@ -1210,7 +1210,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
   .sidebar { display: none; }
   .main { height: 100dvh; min-height: 0; }
   .scroll { padding: 6px 14px calc(82px + env(safe-area-inset-bottom, 0px)); overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
-  .topbar { padding: 16px 16px 8px; }
+  /* keep the header clear of the iPhone status bar / notch (viewport-fit=cover overlays it) */
+  .topbar { padding: calc(14px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) 8px calc(16px + env(safe-area-inset-left, 0px)); }
   .topbar h1 { font-size: 23px; }
   .topbar-right { gap: 10px; }
   .avatar, .mini-ring { width: 40px; height: 40px; }
