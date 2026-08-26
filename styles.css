@@ -760,8 +760,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .td-sub:hover { border-color: var(--stroke-hi); }
 .td-cnt { background: var(--grad-soft); color: var(--text); }
 /* keep "Готово" pinned to the bottom of the modal while the content scrolls */
-.task-detail { padding-bottom: 16px; }
-#tdDone { position: sticky; bottom: -16px; margin-top: 8px; z-index: 3; box-shadow: 0 -14px 22px -8px var(--panel); }
+.task-detail { padding-bottom: 18px; }
+#tdDone { position: sticky; bottom: 0; margin-top: 10px; z-index: 3; box-shadow: 0 -16px 20px -6px var(--panel); }
 
 /* mini widgets on dashboard */
 .mini-tasks { list-style: none; display: flex; flex-direction: column; gap: 7px; }
@@ -1299,7 +1299,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
   .app { grid-template-columns: 1fr; height: 100dvh; }
   .sidebar { display: none; }
   .main { height: 100dvh; min-height: 0; }
-  .scroll { padding: 6px 14px calc(82px + env(safe-area-inset-bottom, 0px)); overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
+  .scroll { padding: 6px 14px calc(70px + env(safe-area-inset-bottom, 0px)); overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
   /* keep the header clear of the iPhone status bar / notch (viewport-fit=cover overlays it) */
   .topbar { padding: calc(14px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) 8px calc(16px + env(safe-area-inset-left, 0px)); }
   .topbar h1 { font-size: 23px; }

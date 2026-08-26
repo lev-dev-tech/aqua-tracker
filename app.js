@@ -1915,11 +1915,16 @@ function loadProfileForm() {
   $('#pKcalGoal').value = state.goals.kcal || '';
   if (DESKTOP && window.desktop) {
     const ur = $('#updateRow'); if (ur) ur.hidden = false;
-    const av = $('#appVer'); if (av) av.textContent = window.desktop.appVersion || '1.0.0';
+    const av = $('#appVer'); if (av) av.textContent = window.desktop.appVersion || '…';
   } else if (SERVED) {
     const ur = $('#updateRow'); if (ur) ur.hidden = false;
     const av = $('#appVer'); if (av && bootVersion) av.textContent = bootVersion;
   }
+  // Show the version actually running (the auto-updated files), not a stale bundled value.
+  fetch('version.json?_=' + Date.now(), { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => { const av = $('#appVer'); if (j && j.version && av) av.textContent = j.version; })
+    .catch(() => {});
   renderAccountCard();
   renderCalc();
   wireDob(document);
