@@ -1237,20 +1237,40 @@ async function idbDel(id) { try { const db = await idb(); return new Promise((re
 function fmtSize(b) { b = b || 0; return b < 1024 ? b + ' Б' : b < 1048576 ? (b / 1024).toFixed(0) + ' КБ' : (b / 1048576).toFixed(1) + ' МБ'; }
 function subDone(t) { const s = t.subtasks || []; return { done: s.filter((x) => x.done).length, total: s.length }; }
 
-// View a file: images open in a lightbox, everything else in a new tab (browser renders pdf/text/etc).
+// View a file: images in a lightbox; on desktop other types open in their default app (Word/PDF…);
+// in the browser, viewable types (pdf/text/image) open in a tab, the rest download with the real name.
 async function openTaskFile(fid, name, type) {
   let rec = null; try { rec = await idbGet(fid); } catch (e) {}
   if (!rec || !rec.blob) { toast('Файл сохранён на другом устройстве', 'err'); return; }
-  const url = URL.createObjectURL(rec.blob);
-  if ((type || '').startsWith('image/')) {
+  type = type || rec.blob.type || '';
+  if (type.startsWith('image/')) {
+    const url = URL.createObjectURL(rec.blob);
     const ov = document.createElement('div'); ov.className = 'lightbox';
-    ov.innerHTML = `<img src="${url}" alt="${escapeHtml(name)}"><button class="lb-close">${icon('x')}</button>`;
+    ov.innerHTML = `<img src="${url}" alt="${escapeHtml(name || '')}"><button class="lb-close">${icon('x')}</button>`;
     document.body.appendChild(ov);
     const close = () => { ov.remove(); URL.revokeObjectURL(url); };
     ov.onclick = (e) => { if (e.target === ov || e.target.closest('.lb-close')) close(); };
-  } else {
+    return;
+  }
+  // Desktop (Electron): hand the bytes to the OS default app — no blank window / save prompt.
+  if (DESKTOP && window.desktop && window.desktop.openFile) {
+    try {
+      const buf = new Uint8Array(await rec.blob.arrayBuffer());
+      const r = await window.desktop.openFile({ name: name || 'file', buffer: buf });
+      if (r && r.ok) return;
+      toast('Не удалось открыть файл', 'err');
+    } catch (e) { toast('Не удалось открыть файл', 'err'); }
+    return;
+  }
+  // Browser: pdf/text render in a new tab; everything else downloads with its real name.
+  const url = URL.createObjectURL(rec.blob);
+  if (type === 'application/pdf' || type.startsWith('text/')) {
     window.open(url, '_blank');
     setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } else {
+    const a = document.createElement('a'); a.href = url; a.download = name || 'file';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 }
 

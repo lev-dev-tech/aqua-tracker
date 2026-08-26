@@ -16,6 +16,9 @@ contextBridge.exposeInMainWorld('desktop', {
   // Renderer -> main: proxy an HTTP request (bypasses renderer CORS).
   request: (url, options) => ipcRenderer.invoke('net:request', { url, options }),
 
+  // Renderer -> main: save a task attachment to a temp file and open it with the OS default app.
+  openFile: (payload) => ipcRenderer.invoke('file:open', payload),
+
   // Main -> renderer: user clicked a "quick add water" tray entry.
   onQuickWater: (cb) => ipcRenderer.on('water:add', (_e, ml) => cb(ml)),
 

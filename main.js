@@ -1,6 +1,7 @@
-const { app, BrowserWindow, Tray, Menu, Notification, ipcMain, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, Notification, ipcMain, nativeImage, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const https = require('https');
 const http = require('http');
 
@@ -215,6 +216,20 @@ ipcMain.handle('net:request', async (_e, { url, options } = {}) => {
   } catch (err) {
     return { ok: false, status: 0, body: '', error: String(err && err.message || err) };
   }
+});
+
+// Renderer -> main: write a task attachment to a temp file (with its ORIGINAL name) and open it
+// with the OS default app (Word, PDF viewer, etc.) instead of a blank window / save prompt.
+ipcMain.handle('file:open', async (_e, { name, buffer } = {}) => {
+  try {
+    const safe = (String(name || 'file').replace(/[\/:*?"<>|]+/g, '_').trim() || 'file').slice(-140);
+    const dir = path.join(os.tmpdir(), 'aqua-files');
+    fs.mkdirSync(dir, { recursive: true });
+    const p = path.join(dir, safe);
+    fs.writeFileSync(p, Buffer.from(buffer));
+    const err = await shell.openPath(p); // returns '' on success, or an error string
+    return { ok: !err, error: err || '' };
+  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
 });
 
 // ---------- lifecycle ----------
