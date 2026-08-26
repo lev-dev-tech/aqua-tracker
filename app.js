@@ -1272,15 +1272,17 @@ function openTaskDetail(id) {
       <label class="td-m">Срок<input type="date" id="tdDue" value="${t.due || ''}"></label>
       <label class="td-m">Категория<input type="text" id="tdCat" value="${escapeHtml(t.category || '')}" placeholder="—"></label>
     </div>
-    <label class="td-lbl">Описание</label>
-    <textarea class="td-desc" id="tdDesc" rows="4" placeholder="Заметки, детали, ссылки…">${escapeHtml(t.desc || '')}</textarea>
     <div class="td-sec">
-      <div class="td-sec-h">Подзадачи <span id="tdSubCount" class="td-cnt"></span></div>
+      <div class="td-sec-h">${ic('align')} Описание</div>
+      <textarea class="td-desc" id="tdDesc" rows="4" placeholder="Заметки, детали, ссылки…">${escapeHtml(t.desc || '')}</textarea>
+    </div>
+    <div class="td-sec">
+      <div class="td-sec-h">${ic('check')} Подзадачи <span id="tdSubCount" class="td-cnt"></span><span class="td-prog" id="tdProg"></span></div>
       <div class="td-subs" id="tdSubs"></div>
       <div class="td-sub-add"><input type="text" id="tdSubInput" placeholder="Новая подзадача"><button class="btn primary sm" id="tdSubAdd">${ic('plus')}</button></div>
     </div>
     <div class="td-sec">
-      <div class="td-sec-h">Файлы <span id="tdFileCount" class="td-cnt"></span></div>
+      <div class="td-sec-h">${ic('clip')} Файлы <span id="tdFileCount" class="td-cnt"></span></div>
       <div class="td-files" id="tdFiles"></div>
       <button class="btn ghost sm full" id="tdFileBtn">${ic('clip')} Прикрепить файл</button>
       <input type="file" id="tdFileInput" hidden multiple>
@@ -1306,6 +1308,8 @@ function openTaskDetail(id) {
   const renderSubs = () => {
     const box = $('#tdSubs', ov), sc = subDone(t);
     $('#tdSubCount', ov).textContent = sc.total ? `${sc.done}/${sc.total}` : '';
+    const prog = $('#tdProg', ov);
+    if (prog) prog.innerHTML = sc.total ? `<span style="width:${Math.round(sc.done / sc.total * 100)}%"></span>` : '';
     box.innerHTML = (t.subtasks || []).map((s) => `<div class="td-sub" data-sid="${s.id}">
       <button class="td-sub-check ${s.done ? 'on' : ''}" data-sact="toggle"></button>
       <span class="${s.done ? 'sdone' : ''}">${escapeHtml(s.text)}</span>
@@ -1385,14 +1389,22 @@ function taskItemHTML(t) {
   const sc = subDone(t);
   const badges = [];
   if (t.desc && t.desc.trim()) badges.push(`<span class="tb" title="Есть описание">${ic('align')}</span>`);
-  if (sc.total) badges.push(`<span class="tb ${sc.done === sc.total ? 'tb-ok' : ''}">${ic('check')} ${sc.done}/${sc.total}</span>`);
-  if ((t.files || []).length) badges.push(`<span class="tb">${ic('clip')} ${t.files.length}</span>`);
+  if ((t.files || []).length) badges.push(`<span class="tb" title="Файлы">${ic('clip')} ${t.files.length}</span>`);
+  let subLine = '';
+  if (sc.total) {
+    const pct = Math.round(sc.done / sc.total * 100);
+    subLine = `<div class="task-sub-line ${sc.done === sc.total ? 'done' : ''}">
+      <div class="task-prog"><span style="width:${pct}%"></span></div>
+      <span class="task-sub-n">${ic('check')} ${sc.done}/${sc.total}</span>
+    </div>`;
+  }
+  const meta = (badges.length || subLine) ? `<div class="task-meta-row">${subLine}${badges.length ? `<div class="task-badges">${badges.join('')}</div>` : ''}</div>` : '';
   return `<div class="task-item ${t.done ? 'done' : ''}" data-id="${t.id}">
     <button class="task-check ${t.done ? 'on' : ''}" data-act="toggle"></button>
     <span class="task-pri ${t.priority}"></span>
     <div class="task-main" data-act="open">
       <span class="task-text">${escapeHtml(t.text)}</span>
-      ${badges.length ? `<div class="task-badges">${badges.join('')}</div>` : ''}
+      ${meta}
     </div>
     ${dueTxt ? `<span class="task-due ${overdue ? 'overdue' : ''}">${dueTxt}</span>` : ''}
     <button class="task-del" data-act="del">${ic('x')}</button>
