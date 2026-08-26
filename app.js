@@ -1279,6 +1279,7 @@ function openTaskDetail(id) {
   t.subtasks = t.subtasks || []; t.files = t.files || [];
   const ov = document.createElement('div'); ov.className = 'modal-ov';
   ov.innerHTML = `<div class="card task-detail" role="dialog">
+    <div class="td-scroll">
     <div class="td-head">
       <button class="td-check ${t.done ? 'on' : ''}" id="tdCheck" title="Готово"></button>
       <input class="td-title" id="tdTitle" value="${escapeHtml(t.text)}" placeholder="Название задачи">
@@ -1306,6 +1307,7 @@ function openTaskDetail(id) {
       <div class="td-files" id="tdFiles"></div>
       <button class="btn ghost sm full" id="tdFileBtn">${ic('clip')} Прикрепить файл</button>
       <input type="file" id="tdFileInput" hidden multiple>
+    </div>
     </div>
     <button class="btn primary full" id="tdDone">Готово</button>
   </div>`;

@@ -682,7 +682,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .task-del svg { width: 16px; height: 16px; }
 
 /* ---------- task detail modal (description / subtasks / files) ---------- */
-.task-detail { width: min(560px, 96vw); max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.modal-ov .card.task-detail { width: min(560px, 96vw); max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; padding: 0; }
+.td-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 22px 22px 8px; }
+#tdDone { flex-shrink: 0; margin: 12px 22px 22px; }
 .td-head { display: flex; align-items: center; gap: 10px; }
 .td-check { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--stroke-hi); cursor: pointer; flex-shrink: 0; background: transparent; display: grid; place-items: center; transition: .2s; }
 .td-check.on { background: var(--grad); border-color: transparent; }
@@ -745,7 +747,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .task-item .task-main:hover .task-text { color: var(--accent-2); }
 
 /* ---------- task detail modal polish ---------- */
-.task-detail { gap: 16px; padding: 22px; }
 .td-head { gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--stroke); }
 .td-meta { background: var(--panel-hi); border: 1px solid var(--stroke); border-radius: 14px; padding: 12px; }
 .td-m select, .td-m input { font-size: 13px; }
@@ -759,9 +760,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .td-sub { background: var(--panel-hi); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; transition: border-color .15s; }
 .td-sub:hover { border-color: var(--stroke-hi); }
 .td-cnt { background: var(--grad-soft); color: var(--text); }
-/* keep "Готово" pinned to the bottom of the modal while the content scrolls */
-.task-detail { padding-bottom: 18px; }
-#tdDone { position: sticky; bottom: 0; margin-top: 10px; z-index: 3; box-shadow: 0 -16px 20px -6px var(--panel); }
 
 /* mini widgets on dashboard */
 .mini-tasks { list-style: none; display: flex; flex-direction: column; gap: 7px; }
@@ -784,8 +782,11 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .dh-toggle { border: 0; border-radius: 10px; padding: 9px; font-family: var(--font); font-weight: 700; font-size: 13px; cursor: pointer; transition: .15s; }
 .dh-toggle.on { background: var(--panel); color: var(--ok); border: 1px solid var(--stroke); }
 .dh-toggle.off { background: var(--grad); color: #fff; }
-.dash-habits .empty-add { grid-column: 1 / -1; text-align: center; padding: 20px; }
-.dash-habits .empty-add p { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+/* generic empty-state (weight card, finance, etc.) — give the text + button room to breathe */
+.empty-add { text-align: center; padding: 12px 6px 6px; }
+.empty-add p { color: var(--muted); font-size: 13.5px; line-height: 1.55; margin: 6px 0 16px; }
+.dash-habits .empty-add { grid-column: 1 / -1; padding: 20px; }
+.dash-habits .empty-add p { font-size: 13px; margin-bottom: 12px; }
 
 .mini-habits { display: flex; flex-direction: column; gap: 8px; }
 .mh { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 11px; background: var(--panel-hi); border: 1px solid var(--stroke); cursor: pointer; transition: .18s; }
@@ -830,7 +831,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .mlabel { display: block; font-size: 12.5px; color: var(--text-dim); font-weight: 600; margin: 12px 0 6px; }
 .hm-picked { font-size: 20px; margin-left: 6px; vertical-align: middle; }
 .emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; margin-top: 8px; max-height: 240px; overflow-y: auto; padding: 2px; }
-.emoji-btn { aspect-ratio: 1; border: 1px solid var(--stroke); background: var(--panel-hi); border-radius: 11px; font-size: 20px; cursor: pointer; transition: .15s; display: grid; place-items: center; }
+.emoji-btn { aspect-ratio: 1; border: 1px solid var(--stroke); background: var(--panel-hi); border-radius: 11px; font-size: 18px; line-height: 1; overflow: hidden; cursor: pointer; transition: transform .15s, border-color .15s, background .15s; display: grid; place-items: center; }
 .emoji-btn:hover { transform: scale(1.12); border-color: var(--stroke-hi); }
 .emoji-btn.sel { background: var(--grad); border-color: transparent; box-shadow: 0 6px 16px -6px rgba(99,102,241,.9); }
 .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
