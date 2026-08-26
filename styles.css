@@ -321,11 +321,13 @@ body::after { width: 38vw; height: 38vw; right: -6vw; top: 2vw;
 .avatar-current-side { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .mini-ring { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
 
-.scroll { flex: 1; overflow-y: auto; padding: 8px clamp(18px, 2.2vw, 44px) 34px; display: flex; flex-direction: column; }
+/* min-height:0 is REQUIRED: without it a flex child keeps its content height and refuses to
+   shrink, so overflow-y never scrolls and the page gets clipped / rubber-bands on mobile. */
+.scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 8px clamp(18px, 2.2vw, 44px) 34px; display: flex; flex-direction: column; }
 
 /* ===================== VIEWS ===================== */
 .view { display: none; animation: fadeUp .45s cubic-bezier(.2,.7,.2,1); }
-.view.active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.view.active { display: flex; flex-direction: column; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
 .grid { display: grid; gap: 18px; }
