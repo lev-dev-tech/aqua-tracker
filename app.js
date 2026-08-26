@@ -91,6 +91,12 @@ function migrate(s) {
   Object.values(s.days || {}).forEach((dd) => {
     (dd.foods || []).forEach((f) => { if (!f.meal) f.meal = mealByHour(new Date(f.ts || Date.now()).getHours()); });
   });
+  // Tasks gained description / subtasks / file attachments — backfill older tasks.
+  (s.tasks || []).forEach((t) => {
+    if (typeof t.desc !== 'string') t.desc = '';
+    if (!Array.isArray(t.subtasks)) t.subtasks = [];
+    if (!Array.isArray(t.files)) t.files = [];
+  });
 }
 
 function load() {
@@ -342,6 +348,8 @@ const ICON_PATHS = {
   share: '<path d="M12 3v13"/><path d="m8 7 4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
   party: '<path d="M4 20 9 8l7 7z"/><path d="M14 6a3 3 0 0 0 3 3"/><path d="M20 4v.01M16 3v.01M20 9v.01"/>',
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  clip: '<path d="M21 11.5 12.5 20a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L10 16.5a1.6 1.6 0 0 1-2.3-2.3l7.6-7.6"/>',
+  align: '<path d="M4 6h16"/><path d="M4 12h12"/><path d="M4 18h8"/>',
 };
 // Inline icon for use inside text/HTML strings (scales with font-size).
 // Unknown names (e.g. an emoji stored on an old habit) fall back to a neutral icon so no emoji leaks through.
@@ -1195,7 +1203,7 @@ function addTask() {
   const text = inp.value.trim();
   if (!text) return;
   const category = ($('#taskCat').value || '').trim();
-  state.tasks.push({ id: uid(), text, done: false, priority: $('#taskPriority').value, due: $('#taskDue').value || '', category, createdAt: todayKey(), doneAt: '' });
+  state.tasks.push({ id: uid(), text, done: false, priority: $('#taskPriority').value, due: $('#taskDue').value || '', category, createdAt: todayKey(), doneAt: '', desc: '', subtasks: [], files: [] });
   inp.value = ''; $('#taskDue').value = ''; // keep category for quick multi-add into the same folder
   save(); renderTasks(); renderDashboard(); updateBadges();
 }
@@ -1207,6 +1215,143 @@ function toggleTask(id) {
 }
 function delTask(id) { state.tasks = state.tasks.filter((x) => x.id !== id); save(); renderTasks(); renderDashboard(); updateBadges(); }
 function clearDone() { const n = state.tasks.filter((x) => x.done).length; state.tasks = state.tasks.filter((x) => !x.done); save(); renderTasks(); renderDashboard(); updateBadges(); if (n) toast(`Удалено готовых: ${n}`); }
+
+/* ---------- task attachments: blobs live in IndexedDB (on-device, large), only metadata syncs ---------- */
+const IDB_NAME = 'aqua-files', IDB_STORE = 'files';
+let _idbP = null;
+function idb() {
+  if (_idbP) return _idbP;
+  _idbP = new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open(IDB_NAME, 1);
+      r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(IDB_STORE)) r.result.createObjectStore(IDB_STORE, { keyPath: 'id' }); };
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    } catch (e) { rej(e); }
+  });
+  return _idbP;
+}
+async function idbPut(rec) { const db = await idb(); return new Promise((res, rej) => { const tx = db.transaction(IDB_STORE, 'readwrite'); tx.objectStore(IDB_STORE).put(rec); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); }
+async function idbGet(id) { const db = await idb(); return new Promise((res, rej) => { const tx = db.transaction(IDB_STORE, 'readonly'); const rq = tx.objectStore(IDB_STORE).get(id); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); }); }
+async function idbDel(id) { try { const db = await idb(); return new Promise((res) => { const tx = db.transaction(IDB_STORE, 'readwrite'); tx.objectStore(IDB_STORE).delete(id); tx.oncomplete = () => res(); tx.onerror = () => res(); }); } catch (e) {} }
+
+function fmtSize(b) { b = b || 0; return b < 1024 ? b + ' Б' : b < 1048576 ? (b / 1024).toFixed(0) + ' КБ' : (b / 1048576).toFixed(1) + ' МБ'; }
+function subDone(t) { const s = t.subtasks || []; return { done: s.filter((x) => x.done).length, total: s.length }; }
+
+// View a file: images open in a lightbox, everything else in a new tab (browser renders pdf/text/etc).
+async function openTaskFile(fid, name, type) {
+  let rec = null; try { rec = await idbGet(fid); } catch (e) {}
+  if (!rec || !rec.blob) { toast('Файл сохранён на другом устройстве', 'err'); return; }
+  const url = URL.createObjectURL(rec.blob);
+  if ((type || '').startsWith('image/')) {
+    const ov = document.createElement('div'); ov.className = 'lightbox';
+    ov.innerHTML = `<img src="${url}" alt="${escapeHtml(name)}"><button class="lb-close">${icon('x')}</button>`;
+    document.body.appendChild(ov);
+    const close = () => { ov.remove(); URL.revokeObjectURL(url); };
+    ov.onclick = (e) => { if (e.target === ov || e.target.closest('.lb-close')) close(); };
+  } else {
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+}
+
+function openTaskDetail(id) {
+  const t = state.tasks.find((x) => x.id === id); if (!t) return;
+  t.subtasks = t.subtasks || []; t.files = t.files || [];
+  const ov = document.createElement('div'); ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="card task-detail" role="dialog">
+    <div class="td-head">
+      <button class="td-check ${t.done ? 'on' : ''}" id="tdCheck" title="Готово"></button>
+      <input class="td-title" id="tdTitle" value="${escapeHtml(t.text)}" placeholder="Название задачи">
+      <button class="td-close" id="tdClose">${icon('x')}</button>
+    </div>
+    <div class="td-meta">
+      <label class="td-m">Приоритет<select id="tdPri">
+        <option value="low"${t.priority === 'low' ? ' selected' : ''}>Низкий</option>
+        <option value="mid"${t.priority === 'mid' ? ' selected' : ''}>Средний</option>
+        <option value="high"${t.priority === 'high' ? ' selected' : ''}>Высокий</option></select></label>
+      <label class="td-m">Срок<input type="date" id="tdDue" value="${t.due || ''}"></label>
+      <label class="td-m">Категория<input type="text" id="tdCat" value="${escapeHtml(t.category || '')}" placeholder="—"></label>
+    </div>
+    <label class="td-lbl">Описание</label>
+    <textarea class="td-desc" id="tdDesc" rows="4" placeholder="Заметки, детали, ссылки…">${escapeHtml(t.desc || '')}</textarea>
+    <div class="td-sec">
+      <div class="td-sec-h">Подзадачи <span id="tdSubCount" class="td-cnt"></span></div>
+      <div class="td-subs" id="tdSubs"></div>
+      <div class="td-sub-add"><input type="text" id="tdSubInput" placeholder="Новая подзадача"><button class="btn primary sm" id="tdSubAdd">${ic('plus')}</button></div>
+    </div>
+    <div class="td-sec">
+      <div class="td-sec-h">Файлы <span id="tdFileCount" class="td-cnt"></span></div>
+      <div class="td-files" id="tdFiles"></div>
+      <button class="btn ghost sm full" id="tdFileBtn">${ic('clip')} Прикрепить файл</button>
+      <input type="file" id="tdFileInput" hidden multiple>
+    </div>
+    <button class="btn primary full" id="tdDone">Готово</button>
+  </div>`;
+  document.body.appendChild(ov);
+  enhanceSelects(ov);
+  const persist = () => save();
+  const close = () => { ov.classList.add('out'); setTimeout(() => ov.remove(), 200); renderTasks(); renderDashboard(); updateBadges(); };
+  ov.onclick = (e) => { if (e.target === ov) close(); };
+  $('#tdClose', ov).onclick = close;
+  $('#tdDone', ov).onclick = close;
+  $('#tdTitle', ov).oninput = (e) => { t.text = e.target.value; };
+  $('#tdTitle', ov).onblur = () => { t.text = (t.text || '').trim() || 'Без названия'; persist(); };
+  $('#tdDesc', ov).oninput = (e) => { t.desc = e.target.value; };
+  $('#tdDesc', ov).onblur = persist;
+  $('#tdPri', ov).onchange = (e) => { t.priority = e.target.value; persist(); };
+  $('#tdDue', ov).onchange = (e) => { t.due = e.target.value; persist(); };
+  $('#tdCat', ov).onblur = (e) => { t.category = e.target.value.trim(); persist(); };
+  $('#tdCheck', ov).onclick = () => { t.done = !t.done; t.doneAt = t.done ? todayKey() : ''; $('#tdCheck', ov).classList.toggle('on', t.done); persist(); };
+
+  const renderSubs = () => {
+    const box = $('#tdSubs', ov), sc = subDone(t);
+    $('#tdSubCount', ov).textContent = sc.total ? `${sc.done}/${sc.total}` : '';
+    box.innerHTML = (t.subtasks || []).map((s) => `<div class="td-sub" data-sid="${s.id}">
+      <button class="td-sub-check ${s.done ? 'on' : ''}" data-sact="toggle"></button>
+      <span class="${s.done ? 'sdone' : ''}">${escapeHtml(s.text)}</span>
+      <button class="td-sub-del" data-sact="del">${ic('x')}</button></div>`).join('') || '<p class="td-empty">Пока нет подзадач</p>';
+    box.querySelectorAll('.td-sub').forEach((el) => {
+      const sid = el.dataset.sid, s = t.subtasks.find((x) => x.id === sid);
+      el.querySelector('[data-sact=toggle]').onclick = () => { s.done = !s.done; persist(); renderSubs(); };
+      el.querySelector('[data-sact=del]').onclick = () => { t.subtasks = t.subtasks.filter((x) => x.id !== sid); persist(); renderSubs(); };
+    });
+  };
+  const addSub = () => { const inp = $('#tdSubInput', ov), v = inp.value.trim(); if (!v) return; t.subtasks.push({ id: uid(), text: v, done: false }); inp.value = ''; persist(); renderSubs(); inp.focus(); };
+  $('#tdSubAdd', ov).onclick = addSub;
+  $('#tdSubInput', ov).onkeydown = (e) => { if (e.key === 'Enter') addSub(); };
+  renderSubs();
+
+  const renderFiles = () => {
+    const box = $('#tdFiles', ov), fs = t.files || [];
+    $('#tdFileCount', ov).textContent = fs.length ? String(fs.length) : '';
+    box.innerHTML = fs.map((f) => `<div class="td-file" data-fid="${f.id}">
+      <div class="td-file-ic" data-thumb="${f.id}">${(f.type || '').startsWith('image/') ? '' : ic('clip')}</div>
+      <div class="td-file-info"><b>${escapeHtml(f.name)}</b><span>${fmtSize(f.size)}</span></div>
+      <button class="td-file-open" data-fact="open">Открыть</button>
+      <button class="td-file-del" data-fact="del">${ic('x')}</button></div>`).join('') || '<p class="td-empty">Нет прикреплённых файлов</p>';
+    box.querySelectorAll('.td-file').forEach((el) => {
+      const fid = el.dataset.fid, f = t.files.find((x) => x.id === fid);
+      el.querySelector('[data-fact=open]').onclick = () => openTaskFile(fid, f.name, f.type);
+      el.querySelector('[data-fact=del]').onclick = async () => { await idbDel(fid); t.files = t.files.filter((x) => x.id !== fid); persist(); renderFiles(); };
+      if ((f.type || '').startsWith('image/')) {
+        idbGet(fid).then((rec) => { if (rec && rec.blob) { const th = el.querySelector('[data-thumb]'); if (th) { th.style.backgroundImage = `url(${URL.createObjectURL(rec.blob)})`; th.classList.add('img'); } } }).catch(() => {});
+      }
+    });
+  };
+  const MAX = 15 * 1024 * 1024;
+  $('#tdFileBtn', ov).onclick = () => $('#tdFileInput', ov).click();
+  $('#tdFileInput', ov).onchange = async (e) => {
+    const files = [...e.target.files]; e.target.value = '';
+    for (const file of files) {
+      if (file.size > MAX) { toast(`«${file.name}» больше 15 МБ`, 'err'); continue; }
+      const fid = uid();
+      try { await idbPut({ id: fid, blob: file }); t.files.push({ id: fid, name: file.name, type: file.type || '', size: file.size }); }
+      catch (err) { toast('Не удалось сохранить файл', 'err'); }
+    }
+    persist(); renderFiles();
+  };
+  renderFiles();
+}
 
 function filteredTasks() {
   const tk = todayKey();
@@ -1237,10 +1382,18 @@ function taskItemHTML(t) {
   const tk = todayKey();
   const overdue = t.due && !t.done && t.due < tk;
   const dueTxt = t.due ? fmtDue(t.due) : '';
+  const sc = subDone(t);
+  const badges = [];
+  if (t.desc && t.desc.trim()) badges.push(`<span class="tb" title="Есть описание">${ic('align')}</span>`);
+  if (sc.total) badges.push(`<span class="tb ${sc.done === sc.total ? 'tb-ok' : ''}">${ic('check')} ${sc.done}/${sc.total}</span>`);
+  if ((t.files || []).length) badges.push(`<span class="tb">${ic('clip')} ${t.files.length}</span>`);
   return `<div class="task-item ${t.done ? 'done' : ''}" data-id="${t.id}">
     <button class="task-check ${t.done ? 'on' : ''}" data-act="toggle"></button>
     <span class="task-pri ${t.priority}"></span>
-    <span class="task-text">${escapeHtml(t.text)}</span>
+    <div class="task-main" data-act="open">
+      <span class="task-text">${escapeHtml(t.text)}</span>
+      ${badges.length ? `<div class="task-badges">${badges.join('')}</div>` : ''}
+    </div>
     ${dueTxt ? `<span class="task-due ${overdue ? 'overdue' : ''}">${dueTxt}</span>` : ''}
     <button class="task-del" data-act="del">${ic('x')}</button>
   </div>`;
@@ -1262,8 +1415,9 @@ function renderTasks() {
   }
   $$('#taskList .task-item').forEach((li) => {
     const id = li.dataset.id;
-    li.querySelector('[data-act=toggle]').onclick = () => toggleTask(id);
-    li.querySelector('[data-act=del]').onclick = () => delTask(id);
+    li.querySelector('[data-act=toggle]').onclick = (e) => { e.stopPropagation(); toggleTask(id); };
+    li.querySelector('[data-act=del]').onclick = (e) => { e.stopPropagation(); delTask(id); };
+    const main = li.querySelector('[data-act=open]'); if (main) main.onclick = () => openTaskDetail(id);
   });
 }
 function fmtDue(d) {
