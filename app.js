@@ -3465,11 +3465,15 @@ function init() {
   initAuth(); // Firebase auth state + cloud sync
   // PWA: register service worker (offline shell + notifications). Only over http(s).
   if (SERVED && 'serviceWorker' in navigator) {
+    // Was the page already controlled by a SW at load? If NOT, the first controllerchange is
+    // just the SW's initial claim on a fresh install — reloading then would replay the splash.
+    // Only reload on a LATER controllerchange (a genuine update).
+    const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.register('sw.js').then((reg) => {
-      // A new SW taking over means fresh code is live — reload once so the page runs it.
       let reloaded = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (reloaded) return; reloaded = true; location.reload();
+        if (!hadController || reloaded) return; // skip the first-install claim
+        reloaded = true; location.reload();
       });
       // Nudge the SW to look for a new version now and then.
       setInterval(() => reg.update().catch(() => {}), 15 * 60 * 1000);
