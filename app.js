@@ -3313,31 +3313,44 @@ function syncPush() {
     } catch (e) { setSyncBadge('off'); }
   }, 900);
 }
-function applyCloudState(json) {
+// ---- deep-union merge: neither device loses data (finance, profile, history, tasks…) ----
+function isEmptyVal(v) { return v == null || v === '' || (Array.isArray(v) && v.length === 0); }
+function unionById(a, b) {
+  const out = Array.isArray(a) ? a.slice() : [];
+  const ids = new Set(out.map((x) => x && x.id).filter((x) => x != null));
+  (Array.isArray(b) ? b : []).forEach((x) => { if (x && x.id != null && !ids.has(x.id)) out.push(x); });
+  return out;
+}
+// Merge `s` into `o`: `o` (primary) wins scalar conflicts; arrays of {id} objects and
+// date-keyed maps are unioned; `o`'s empty scalars are filled from `s`.
+function mergeInto(o, s) {
+  if (!s || typeof s !== 'object') return;
+  for (const k in s) {
+    const sv = s[k], ov = o[k];
+    if (Array.isArray(sv)) {
+      if (sv.length && sv[0] && typeof sv[0] === 'object' && sv[0].id != null) o[k] = unionById(ov, sv);
+      else if (isEmptyVal(ov)) o[k] = sv;
+    } else if (sv && typeof sv === 'object') {
+      if (!ov || typeof ov !== 'object' || Array.isArray(ov)) o[k] = structuredClone(sv);
+      else mergeInto(ov, sv);
+    } else if (isEmptyVal(ov) && !isEmptyVal(sv)) {
+      o[k] = sv;
+    }
+  }
+}
+function mergeStates(primary, secondary) { const out = structuredClone(primary || {}); mergeInto(out, secondary || {}); return out; }
+
+// Adopt an already-merged state object (guards against re-uploading while applying).
+function applyMergedState(obj) {
+  cloudApplying = true;
   try {
-    cloudApplying = true;
-    state = deepMerge(structuredClone(DEFAULTS), JSON.parse(json));
+    state = deepMerge(structuredClone(DEFAULTS), obj);
     migrate(state);
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     markUpdated();
     loadProfileForm(); renderAll(); applyTheme(); applyReminder();
-    toast('Данные синхронизированы', 'ok');
-  } catch (e) { console.warn('applyCloud failed', e); }
+  } catch (e) { console.warn('applyMerged failed', e); }
   finally { cloudApplying = false; }
-}
-// Profile "identity" fields — these must never be wiped by a blank device on first login.
-const PROFILE_IDENTITY = ['name', 'birthday', 'sex', 'age', 'height', 'weight', 'avatar', 'goal', 'goalRate', 'targetWeight', 'startWeight'];
-// Copy identity fields from `source` into `target` wherever target is empty. Returns true if anything changed.
-function fillEmptyIdentity(target, source) {
-  if (!target || !source) return false;
-  let changed = false;
-  for (const k of PROFILE_IDENTITY) {
-    const tv = target[k], sv = source[k];
-    const tEmpty = tv === '' || tv == null;
-    const sEmpty = sv === '' || sv == null;
-    if (tEmpty && !sEmpty) { target[k] = sv; changed = true; }
-  }
-  return changed;
 }
 async function startSync() {
   if (!FB || !account) return;
@@ -3346,29 +3359,27 @@ async function startSync() {
     const snap = await ref.get();
     if (snap.exists && snap.data() && snap.data().data) {
       const cloud = snap.data();
-      let cloudProfile = null;
-      try { cloudProfile = JSON.parse(cloud.data).profile || null; } catch (e) {}
-      if ((cloud.updatedAt || 0) > localUpdatedAt()) {
-        // cloud is newer — pull it, but keep any identity field only THIS device had
-        const localProfBefore = structuredClone(state.profile);
-        applyCloudState(cloud.data);
-        if (fillEmptyIdentity(state.profile, localProfBefore)) { save(); loadProfileForm(); updateTopbar(); }
-      } else {
-        // local is newer — but first fill our own identity holes from the cloud so the
-        // upload carries the UNION (a blank name here must not erase the cloud's name).
-        if (fillEmptyIdentity(state.profile, cloudProfile)) { loadProfileForm(); updateTopbar(); }
-        markUpdated(); syncPush();
+      let cloudState = null; try { cloudState = JSON.parse(cloud.data); } catch (e) {}
+      if (cloudState) {
+        // UNION both devices. The newer one wins scalar conflicts, but finance/tasks/history
+        // and profile fields from BOTH are kept — no device wipes the other's data anymore.
+        const cloudNewer = (cloud.updatedAt || 0) > localUpdatedAt();
+        applyMergedState(cloudNewer ? mergeStates(cloudState, state) : mergeStates(state, cloudState));
+        toast('Данные синхронизированы', 'ok');
+        syncPush(); // push the superset so the other device also gets everything
       }
     } else {
       syncPush(); // brand-new account → seed it with local data
     }
     setSyncBadge('ok');
   } catch (e) { setSyncBadge('off'); }
-  // live updates pushed from other devices
+  // live updates from other devices — union in so our own local-only data is never dropped
   syncUnsub = ref.onSnapshot((s) => {
-    if (!s.exists || s.metadata.hasPendingWrites) return; // ignore our own optimistic writes
+    if (!s.exists || s.metadata.hasPendingWrites) return;               // ignore our own writes
     const cloud = s.data();
-    if (cloud && cloud.data && (cloud.updatedAt || 0) > localUpdatedAt()) applyCloudState(cloud.data);
+    if (!cloud || !cloud.data || (cloud.updatedAt || 0) <= localUpdatedAt()) return;
+    let cloudState = null; try { cloudState = JSON.parse(cloud.data); } catch (e) {}
+    if (cloudState) { applyMergedState(mergeStates(cloudState, state)); toast('Данные обновлены', 'ok'); }
   }, () => setSyncBadge('off'));
 }
 function stopSync() { if (syncUnsub) { syncUnsub(); syncUnsub = null; } }

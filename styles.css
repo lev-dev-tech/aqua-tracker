@@ -757,6 +757,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .td-sub { background: var(--panel-hi); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; transition: border-color .15s; }
 .td-sub:hover { border-color: var(--stroke-hi); }
 .td-cnt { background: var(--grad-soft); color: var(--text); }
+/* keep "Готово" pinned to the bottom of the modal while the content scrolls */
+.task-detail { padding-bottom: 16px; }
+#tdDone { position: sticky; bottom: -16px; margin-top: 8px; z-index: 3; box-shadow: 0 -14px 22px -8px var(--panel); }
 
 /* mini widgets on dashboard */
 .mini-tasks { list-style: none; display: flex; flex-direction: column; gap: 7px; }
