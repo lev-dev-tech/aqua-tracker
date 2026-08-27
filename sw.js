@@ -1,5 +1,5 @@
 /* Aqua service worker — offline app shell + notifications (PWA). */
-const CACHE = 'aqua-v9';
+const CACHE = 'aqua-v10';
 const CORE = [
   './', './index.html', './styles.css', './app.js', './manifest.json',
   './assets/icon-192.png', './assets/icon-512.png',

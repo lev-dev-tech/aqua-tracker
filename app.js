@@ -3651,7 +3651,18 @@ function initSplash() {
   setTimeout(() => leave(false), 6000); // hard safety cap so it can never hang
 }
 
+// iOS lies about 100vh/100dvh in standalone PWAs — measure the real visible height and pin the
+// layout to it so the bottom tab bar is always flush with the screen (no empty strip under it).
+function setAppHeight() {
+  const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 0;
+  // Guard against bogus/0 readings (some load states report 0) — a real screen is always tall.
+  if (h > 200) document.documentElement.style.setProperty('--app-h', Math.round(h) + 'px');
+}
 function init() {
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 250));
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', setAppHeight);
   initSplash();
   applyTheme();
   wire();
