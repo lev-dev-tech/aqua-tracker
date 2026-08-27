@@ -724,7 +724,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
 .td-file-ic svg { width: 20px; height: 20px; }
 .td-file-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .td-file-info b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.td-file-info span { font-size: 11px; color: var(--muted); }
+.td-file-info span { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 3px; }
+.tf-cloud { display: inline-flex; }
+.tf-cloud svg { width: 12px; height: 12px; stroke: var(--ok); }
 .td-file-open { background: var(--panel-solid); border: 1px solid var(--stroke-hi); color: var(--text); font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-family: var(--font); flex-shrink: 0; }
 .td-file-open:hover { border-color: var(--accent); }
 /* image lightbox */

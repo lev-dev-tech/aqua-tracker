@@ -1234,6 +1234,29 @@ async function idbPut(rec) { const db = await idb(); return new Promise((res, re
 async function idbGet(id) { const db = await idb(); return new Promise((res, rej) => { const tx = db.transaction(IDB_STORE, 'readonly'); const rq = tx.objectStore(IDB_STORE).get(id); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); }); }
 async function idbDel(id) { try { const db = await idb(); return new Promise((res) => { const tx = db.transaction(IDB_STORE, 'readwrite'); tx.objectStore(IDB_STORE).delete(id); tx.oncomplete = () => res(); tx.onerror = () => res(); }); } catch (e) {} }
 
+// ---- cloud file sync: small files as separate Firestore docs (main state stays tiny) ----
+const CLOUD_FILE_MAX = 700 * 1024; // ~700 KB (Firestore doc cap is 1 MB; base64 inflates ~37%)
+function blobToDataURL(blob) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); }); }
+function dataURLToBlob(u) { // manual decode (CSP blocks fetch of data: URLs)
+  const c = String(u).indexOf(','); const meta = u.slice(0, c), b64 = u.slice(c + 1);
+  const mime = (meta.match(/:(.*?);/) || [])[1] || '';
+  const bin = atob(b64), arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+function cloudFileRef(fid) { return FB.db.collection('users').doc(account.uid).collection('files').doc(fid); }
+async function cloudFilePut(fid, name, type, blob) {
+  if (!FB || !account || !blob || blob.size > CLOUD_FILE_MAX) return false;
+  try { await cloudFileRef(fid).set({ name: name || '', type: type || '', size: blob.size, data: await blobToDataURL(blob) }); return true; }
+  catch (e) { return false; }
+}
+async function cloudFileGet(fid) {
+  if (!FB || !account) return null;
+  try { const s = await cloudFileRef(fid).get(); const d = s.exists && s.data(); return d && d.data ? await dataURLToBlob(d.data) : null; }
+  catch (e) { return null; }
+}
+function cloudFileDel(fid) { if (FB && account) { try { cloudFileRef(fid).delete(); } catch (e) {} } }
+
 function fmtSize(b) { b = b || 0; return b < 1024 ? b + ' Б' : b < 1048576 ? (b / 1024).toFixed(0) + ' КБ' : (b / 1048576).toFixed(1) + ' МБ'; }
 function subDone(t) { const s = t.subtasks || []; return { done: s.filter((x) => x.done).length, total: s.length }; }
 
@@ -1241,7 +1264,13 @@ function subDone(t) { const s = t.subtasks || []; return { done: s.filter((x) =>
 // in the browser, viewable types (pdf/text/image) open in a tab, the rest download with the real name.
 async function openTaskFile(fid, name, type) {
   let rec = null; try { rec = await idbGet(fid); } catch (e) {}
-  if (!rec || !rec.blob) { toast('Файл сохранён на другом устройстве', 'err'); return; }
+  if (!rec || !rec.blob) {
+    // not on this device — pull it from the cloud and cache it locally.
+    toast('Загружаю файл из облака…');
+    const cloudBlob = await cloudFileGet(fid);
+    if (cloudBlob) { rec = { id: fid, blob: cloudBlob }; try { await idbPut(rec); } catch (e) {} }
+  }
+  if (!rec || !rec.blob) { toast('Файл недоступен (не синхронизирован)', 'err'); return; }
   type = type || rec.blob.type || '';
   if (type.startsWith('image/')) {
     const url = URL.createObjectURL(rec.blob);
@@ -1352,13 +1381,13 @@ function openTaskDetail(id) {
     $('#tdFileCount', ov).textContent = fs.length ? String(fs.length) : '';
     box.innerHTML = fs.map((f) => `<div class="td-file" data-fid="${f.id}">
       <div class="td-file-ic" data-thumb="${f.id}">${(f.type || '').startsWith('image/') ? '' : ic('clip')}</div>
-      <div class="td-file-info"><b>${escapeHtml(f.name)}</b><span>${fmtSize(f.size)}</span></div>
+      <div class="td-file-info"><b>${escapeHtml(f.name)}</b><span>${fmtSize(f.size)}${f.cloud ? ' · <span class="tf-cloud" title="Синхронизирован">' + icon('cloud') + '</span> в облаке' : ' · только тут'}</span></div>
       <button class="td-file-open" data-fact="open">Открыть</button>
       <button class="td-file-del" data-fact="del">${ic('x')}</button></div>`).join('') || '<p class="td-empty">Нет прикреплённых файлов</p>';
     box.querySelectorAll('.td-file').forEach((el) => {
       const fid = el.dataset.fid, f = t.files.find((x) => x.id === fid);
       el.querySelector('[data-fact=open]').onclick = () => openTaskFile(fid, f.name, f.type);
-      el.querySelector('[data-fact=del]').onclick = async () => { await idbDel(fid); t.files = t.files.filter((x) => x.id !== fid); persist(); renderFiles(); };
+      el.querySelector('[data-fact=del]').onclick = async () => { await idbDel(fid); cloudFileDel(fid); t.files = t.files.filter((x) => x.id !== fid); persist(); renderFiles(); };
       if ((f.type || '').startsWith('image/')) {
         idbGet(fid).then((rec) => { if (rec && rec.blob) { const th = el.querySelector('[data-thumb]'); if (th) { th.style.backgroundImage = `url(${URL.createObjectURL(rec.blob)})`; th.classList.add('img'); } } }).catch(() => {});
       }
@@ -1371,8 +1400,13 @@ function openTaskDetail(id) {
     for (const file of files) {
       if (file.size > MAX) { toast(`«${file.name}» больше 15 МБ`, 'err'); continue; }
       const fid = uid();
-      try { await idbPut({ id: fid, blob: file }); t.files.push({ id: fid, name: file.name, type: file.type || '', size: file.size }); }
-      catch (err) { toast('Не удалось сохранить файл', 'err'); }
+      try {
+        await idbPut({ id: fid, blob: file });
+        const meta = { id: fid, name: file.name, type: file.type || '', size: file.size };
+        t.files.push(meta);
+        if (account && file.size <= CLOUD_FILE_MAX) { meta.cloud = true; cloudFilePut(fid, file.name, file.type, file); } // sync small files
+        else if (file.size > CLOUD_FILE_MAX) toast(`«${file.name}» >700 КБ — только на этом устройстве`);
+      } catch (err) { toast('Не удалось сохранить файл', 'err'); }
     }
     persist(); renderFiles();
   };
